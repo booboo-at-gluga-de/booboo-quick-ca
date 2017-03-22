@@ -12,6 +12,39 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
+echo ::
+echo :: Setting up your new CA
+echo :: ======================
+
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
+echo ::
+echo :: Base directory for you CA is $BOOBOO_QUICK_CA_BASE
+echo :: If this is not what you want, set environment variable BOOBOO_QUICK_CA_BASE
+echo :: to point somewhere else e. g. by calling this script as
+echo :: BOOBOO_QUICK_CA_BASE=/path/to/base $0
+echo ::
+echo -n ":: Do you want to setup your CA in $BOOBOO_QUICK_CA_BASE? "
+read ANSWER
+if [[ $(echo $ANSWER | egrep -i "^(y|yes)$" | wc -l) -eq 0 ]]; then
+    echo Aborting...
+    exit 1
+fi
+
+echo ::
+echo :: Creating sub directories...
+umask 077
+mkdir -p $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/crl
+chmod 700 $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys
+chmod 755 $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/crl
+
+echo ::
+echo :: Creating config files...
+echo ::
+
+if [[ -f $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg ]]; then
+    source $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
+fi
+
 # .-- default values -----------------------------------------------------.
 #
 #                _   _   _             _   _
@@ -21,7 +54,7 @@ fi
 #            /_/   \_\__|\__\___|_| |_|\__|_|\___/|_| |_|
 #
 # Attention: If you want your own defaults do   N O T   change them here!
-#            Change them in $BASE/ca_config/booboo-quick-ca.cfg
+#            Change them in $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 
 COUNTRY_NAME_DEFAULT=${COUNTRY_NAME_DEFAULT:-"DE"}
 STATE_OR_PROVINCE_NAME_DEFAULT=${STATE_OR_PROVINCE_NAME_DEFAULT:-"Gallien"}
@@ -33,36 +66,51 @@ CA_COMMON_NAME_DEFAULT=${CA_COMMON_NAME_DEFAULT:-"RootCA.example.com"}
 
 #.
 
-echo ::
-echo :: Setting up your new CA
-echo :: ======================
+if [[ ! -f $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg ]]; then
+    echo :: A config file
+    echo :: $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
+    echo :: does not exist. Creating it for you!
 
-BASE=${BASE:-$(readlink -f $(dirname $0)/..)}
-echo ::
-echo :: Base directory for you CA is $BASE
+    cat > $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg <<END
+# Default values for openssl commands
+#
+# Everytime a Certificate Signing Request (CSR) is created, openssl
+# asks for some informations. As you might not want to type them
+# every time, we provide defaults here.
+#
+# Please note: This are only default values!! You still get the
+# chance to overwrite them for every single CSR!
 
-echo ::
-echo :: Creating sub directories...
-umask 077
-mkdir -p $BASE/ca_config $BASE/ca_certs $BASE/ca_private_keys $BASE/customer_certs $BASE/customer_private_keys $BASE/crl
-chmod 700 $BASE/ca_config $BASE/ca_private_keys $BASE/customer_certs $BASE/customer_private_keys
-chmod 755 $BASE/ca_certs $BASE/crl
+COUNTRY_NAME_DEFAULT="DE"
+STATE_OR_PROVINCE_NAME_DEFAULT="Gallien"
+LOCALITY_NAME_DEFAULT="Gallisches Dorf"
+ORGANIZATION_NAME_DEFAULT="Die Gallier"
+ORGANIZATIONAL_UNIT_NAME_DEFAULT=""
+EMAILADDRESS_DEFAULT="certificates@examples.com"
+CA_COMMON_NAME_DEFAULT="RootCA.example.com"
+END
 
-echo ::
-echo :: Creating config files...
-echo ::
-touch $BASE/ca_config/index.txt
-echo 1000 > $BASE/ca_config/serial
+    echo ::
+    echo :: Edit this file now and fill it with you wanted values.
+    echo :: At the moment it contains only sample data!
+    echo ::
+    echo :: Afterwards, start this script \($0\) again.
+    echo ::
+    exit 0
+fi
+
+touch $BOOBOO_QUICK_CA_BASE/ca_config/index.txt
+echo 1000 > $BOOBOO_QUICK_CA_BASE/ca_config/serial
 
 # .-- root_ca_openssl.cnf -------------------------------------------------.
-cat > $BASE/ca_config/root_ca_openssl.cnf <<END
+cat > $BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf <<END
 [ ca ]
 # man ca
 default_ca = CA_default
 
 [ CA_default ]
 # Directory and file locations.
-dir               = $BASE/
+dir               = $BOOBOO_QUICK_CA_BASE/
 certs             = \$dir/ca_certs
 crl_dir           = \$dir/crl
 new_certs_dir     = \$dir/customer_certs
@@ -192,22 +240,22 @@ END
 echo ::
 echo :: Creating Key for Root CA...
 echo ::
-openssl genrsa -aes256 -out $BASE/ca_private_keys/root_ca.key.pem 4096
+openssl genrsa -aes256 -out $BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem 4096
 
-chmod 400 $BASE/ca_private_keys/root_ca.key.pem
+chmod 400 $BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem
 
 echo ::
 echo :: Creating Root CA certificate...
 echo ::
-openssl req -config $BASE/ca_config/root_ca_openssl.cnf \
-      -key $BASE/ca_private_keys/root_ca.key.pem \
+openssl req -config $BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf \
+      -key $BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem \
       -new -x509 -days 7305 -sha256 -extensions v3_ca \
-      -out $BASE/ca_certs/root_ca.cert.pem
+      -out $BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
 
-chmod 444 $BASE/ca_certs/root_ca.cert.pem
+chmod 444 $BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
 
 echo ::
 echo :: Please verify your new Root CA Certificate:
 echo :: -------------------------------------------
 echo ::
-openssl x509 -noout -text -in $BASE/ca_certs/root_ca.cert.pem
+openssl x509 -noout -text -in $BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
