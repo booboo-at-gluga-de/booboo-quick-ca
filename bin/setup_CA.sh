@@ -12,11 +12,18 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
+QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
+INDEX_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/index.txt
+SERIAL_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/serial
+ROOT_CA_OPENSSL_CNF_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf
+ROOT_CA_KEY_FILE=$BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem
+ROOT_CA_CERT_FILE=$BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
+EXISTING_CONFIG_FILES=0
+
 echo ::
 echo :: Setting up your new CA
 echo :: ======================
-
-BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 echo ::
 echo :: Base directory for you CA is $BOOBOO_QUICK_CA_BASE
 echo :: If this is not what you want, set environment variable BOOBOO_QUICK_CA_BASE
@@ -31,6 +38,26 @@ if [[ $(echo $ANSWER | egrep -i "^(y|yes)$" | wc -l) -eq 0 ]]; then
 fi
 
 echo ::
+echo :: Checking base directory...
+echo ::
+for FILE in $INDEX_FILE $SERIAL_FILE $ROOT_CA_KEY_FILE $ROOT_CA_CERT_FILE; do
+    if [[ -f $FILE ]]; then
+        echo :: $FILE already exists
+        EXISTING_CONFIG_FILES=$(($EXISTING_CONFIG_FILES+1))
+    fi
+done
+
+if [[ $EXISTING_CONFIG_FILES -gt 0 ]]; then
+    echo ::
+    echo :: Seems there is an existing CA already in $BOOBOO_QUICK_CA_BASE
+    echo :: If you want to setup a new one, please remove file\(s\) above.
+    echo ::
+    exit 1
+else
+    echo :: OK
+fi
+
+echo ::
 echo :: Creating sub directories...
 umask 077
 mkdir -p $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/crl
@@ -41,20 +68,14 @@ echo ::
 echo :: Creating config files...
 echo ::
 
-if [[ -f $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg ]]; then
-    source $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
+if [[ -f $QUICK_CA_CFG_FILE ]]; then
+    source $QUICK_CA_CFG_FILE
 fi
 
 # .-- default values -----------------------------------------------------.
 #
-#                _   _   _             _   _
-#               / \ | |_| |_ ___ _ __ | |_(_) ___  _ __
-#              / _ \| __| __/ _ \ '_ \| __| |/ _ \| '_ \
-#             / ___ \ |_| ||  __/ | | | |_| | (_) | | | |
-#            /_/   \_\__|\__\___|_| |_|\__|_|\___/|_| |_|
-#
 # Attention: If you want your own defaults do   N O T   change them here!
-#            Change them in $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
+#            Change them in $QUICK_CA_CFG_FILE
 
 COUNTRY_NAME_DEFAULT=${COUNTRY_NAME_DEFAULT:-"DE"}
 STATE_OR_PROVINCE_NAME_DEFAULT=${STATE_OR_PROVINCE_NAME_DEFAULT:-"Gallien"}
@@ -66,12 +87,12 @@ CA_COMMON_NAME_DEFAULT=${CA_COMMON_NAME_DEFAULT:-"RootCA.example.com"}
 
 #.
 
-if [[ ! -f $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg ]]; then
+if [[ ! -f $QUICK_CA_CFG_FILE ]]; then
     echo :: A config file
-    echo :: $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
+    echo :: $QUICK_CA_CFG_FILE
     echo :: does not exist. Creating it for you!
 
-    cat > $BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg <<END
+    cat > $QUICK_CA_CFG_FILE <<END
 # Default values for openssl commands
 #
 # Everytime a Certificate Signing Request (CSR) is created, openssl
@@ -99,11 +120,11 @@ END
     exit 0
 fi
 
-touch $BOOBOO_QUICK_CA_BASE/ca_config/index.txt
-echo 1000 > $BOOBOO_QUICK_CA_BASE/ca_config/serial
+touch $INDEX_FILE
+echo 1000 > $SERIAL_FILE
 
 # .-- root_ca_openssl.cnf -------------------------------------------------.
-cat > $BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf <<END
+cat > $ROOT_CA_OPENSSL_CNF_FILE <<END
 [ ca ]
 # man ca
 default_ca = CA_default
@@ -114,13 +135,13 @@ dir               = $BOOBOO_QUICK_CA_BASE/
 certs             = \$dir/ca_certs
 crl_dir           = \$dir/crl
 new_certs_dir     = \$dir/customer_certs
-database          = \$dir/ca_config/index.txt
-serial            = \$dir/ca_config/serial
+database          = $INDEX_FILE
+serial            = $SERIAL_FILE
 RANDFILE          = \$dir/ca_config/.rand
 
 # The root CA key certificate.
-private_key       = \$dir/ca_private_keys/root_ca.key.pem
-certificate       = \$dir/ca_certs/root_ca.cert.pem
+private_key       = $ROOT_CA_KEY_FILE
+certificate       = $ROOT_CA_CERT_FILE
 
 # For certificate revocation lists.
 crlnumber         = \$dir/ca_config/crlnumber
@@ -240,22 +261,20 @@ END
 echo ::
 echo :: Creating Key for Root CA...
 echo ::
-openssl genrsa -aes256 -out $BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem 4096
+openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE 4096
 
-chmod 400 $BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem
+chmod 400 $ROOT_CA_KEY_FILE
 
 echo ::
 echo :: Creating Root CA certificate...
 echo ::
-openssl req -config $BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf \
-      -key $BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem \
-      -new -x509 -days 7305 -sha256 -extensions v3_ca \
-      -out $BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
+openssl req -config $ROOT_CA_OPENSSL_CNF_FILE -key $ROOT_CA_KEY_FILE \
+      -new -x509 -days 7305 -sha256 -extensions v3_ca -out $ROOT_CA_CERT_FILE
 
-chmod 444 $BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
+chmod 444 $ROOT_CA_CERT_FILE
 
 echo ::
 echo :: Please verify your new Root CA Certificate:
 echo :: -------------------------------------------
 echo ::
-openssl x509 -noout -text -in $BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
+openssl x509 -noout -text -in $ROOT_CA_CERT_FILE
