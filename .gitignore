@@ -4,3 +4,4 @@ ca_private_keys/*
 crl/*
 customer_certs/*
 customer_private_keys/*
+csr/*
