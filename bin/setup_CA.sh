@@ -14,26 +14,11 @@ fi
 
 BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
-
-ROOT_CA_INDEX_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_index.txt
-ROOT_CA_SERIAL_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_serial
-ROOT_CA_CRL_NUMBER_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_crlnumber
-ROOT_CA_CRL_PEM_FILE=$BOOBOO_QUICK_CA_BASE/crl/root_ca.crl.pem
-ROOT_CA_OPENSSL_CNF_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf
-ROOT_CA_KEY_FILE=$BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem
-ROOT_CA_CERT_FILE=$BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
-
-ISSUING_CA_INDEX_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_index.txt
-ISSUING_CA_SERIAL_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_serial
-ISSUING_CA_CRL_NUMBER_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_crlnumber
-ISSUING_CA_CRL_PEM_FILE=$BOOBOO_QUICK_CA_BASE/crl/issuing_ca.crl.pem
-ISSUING_CA_OPENSSL_CNF_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_openssl.cnf
-ISSUING_CA_KEY_FILE=$BOOBOO_QUICK_CA_BASE/ca_private_keys/issuing_ca.key.pem
-ISSUING_CA_CERT_FILE=$BOOBOO_QUICK_CA_BASE/ca_certs/issuing_ca.cert.pem
-ISSUING_CA_CSR_FILE=$BOOBOO_QUICK_CA_BASE/csr/issuing_ca.csr.pem
-
-CA_CHAIN_FILE=$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain.cert.pem
 EXISTING_CONFIG_FILES=0
+
+if [[ -f $QUICK_CA_CFG_FILE ]]; then
+    source $QUICK_CA_CFG_FILE
+fi
 
 echo ::
 echo :: Setting up your new root CA
@@ -82,10 +67,6 @@ echo ::
 echo :: Creating config files...
 echo ::
 
-if [[ -f $QUICK_CA_CFG_FILE ]]; then
-    source $QUICK_CA_CFG_FILE
-fi
-
 # .-- default values -----------------------------------------------------.
 #
 # Attention: If you want your own defaults do   N O T   change them here!
@@ -101,14 +82,16 @@ ROOT_CA_COMMON_NAME_DEFAULT=${CA_COMMON_NAME_DEFAULT:-"RootCA.example.com"}
 ISSUING_CA_COMMON_NAME_DEFAULT=${CA_COMMON_NAME_DEFAULT:-"IssuingCA.example.com"}
 
 #.
-
+# .-- creating $QUICK_CA_CFG_FILE ----------------------------------------.
 if [[ ! -f $QUICK_CA_CFG_FILE ]]; then
     echo :: A config file
     echo :: $QUICK_CA_CFG_FILE
     echo :: does not exist. Creating it for you!
 
     cat > $QUICK_CA_CFG_FILE <<END
+###########################################################################
 # Default values for openssl commands
+###########################################################################
 #
 # Everytime a Certificate Signing Request (CSR) is created, openssl
 # asks for some informations. As you might not want to type them
@@ -122,9 +105,32 @@ STATE_OR_PROVINCE_NAME_DEFAULT="Gallien"
 LOCALITY_NAME_DEFAULT="Gallisches Dorf"
 ORGANIZATION_NAME_DEFAULT="Die Gallier"
 ORGANIZATIONAL_UNIT_NAME_DEFAULT=""
-EMAILADDRESS_DEFAULT="certificates@examples.com"
+EMAILADDRESS_DEFAULT="certificates@example.com"
 ROOT_CA_COMMON_NAME_DEFAULT="RootCA.example.com"
 ISSUING_CA_COMMON_NAME_DEFAULT="IssuingCA.example.com"
+
+###########################################################################
+# Variables for the booboo-quick-ca scripts
+###########################################################################
+
+ROOT_CA_INDEX_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_index.txt
+ROOT_CA_SERIAL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_serial
+ROOT_CA_CRL_NUMBER_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_crlnumber
+ROOT_CA_CRL_PEM_FILE=\$BOOBOO_QUICK_CA_BASE/crl/root_ca.crl.pem
+ROOT_CA_OPENSSL_CNF_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf
+ROOT_CA_KEY_FILE=\$BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem
+ROOT_CA_CERT_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
+
+ISSUING_CA_INDEX_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_index.txt
+ISSUING_CA_SERIAL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_serial
+ISSUING_CA_CRL_NUMBER_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_crlnumber
+ISSUING_CA_CRL_PEM_FILE=\$BOOBOO_QUICK_CA_BASE/crl/issuing_ca.crl.pem
+ISSUING_CA_OPENSSL_CNF_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_openssl.cnf
+ISSUING_CA_KEY_FILE=\$BOOBOO_QUICK_CA_BASE/ca_private_keys/issuing_ca.key.pem
+ISSUING_CA_CERT_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/issuing_ca.cert.pem
+ISSUING_CA_CSR_FILE=\$BOOBOO_QUICK_CA_BASE/csr/issuing_ca.csr.pem
+
+CA_CHAIN_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain.cert.pem
 END
 
     echo ::
@@ -135,6 +141,7 @@ END
     echo ::
     exit 0
 fi
+#.
 
 # The index.txt file is where the OpenSSL ca tool stores the certificate
 # database. Do not delete or edit this file by hand. It should now contain
