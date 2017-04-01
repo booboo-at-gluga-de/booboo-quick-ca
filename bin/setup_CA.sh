@@ -59,8 +59,8 @@ fi
 echo ::
 echo :: Creating sub directories...
 umask 077
-mkdir -p $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/crl $BOOBOO_QUICK_CA_BASE/csr
-chmod 700 $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/csr
+mkdir -p $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/crl $BOOBOO_QUICK_CA_BASE/csr $BOOBOO_QUICK_CA_BASE/tmp
+chmod 700 $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/csr $BOOBOO_QUICK_CA_BASE/tmp
 chmod 755 $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/crl
 
 echo ::
@@ -78,8 +78,8 @@ LOCALITY_NAME_DEFAULT=${LOCALITY_NAME_DEFAULT:-"Gallisches Dorf"}
 ORGANIZATION_NAME_DEFAULT=${ORGANIZATION_NAME_DEFAULT:-"Die Gallier"}
 ORGANIZATIONAL_UNIT_NAME_DEFAULT=${ORGANIZATIONAL_UNIT_NAME_DEFAULT:-""}
 EMAILADDRESS_DEFAULT=${EMAILADDRESS_DEFAULT:-"certificates@example.com"}
-ROOT_CA_COMMON_NAME_DEFAULT=${CA_COMMON_NAME_DEFAULT:-"RootCA.example.com"}
-ISSUING_CA_COMMON_NAME_DEFAULT=${CA_COMMON_NAME_DEFAULT:-"IssuingCA.example.com"}
+ROOT_CA_COMMON_NAME_DEFAULT=${ROOT_CA_COMMON_NAME_DEFAULT:-"RootCA.example.com"}
+ISSUING_CA_COMMON_NAME_DEFAULT=${ISSUING_CA_COMMON_NAME_DEFAULT:-"IssuingCA.example.com"}
 
 #.
 # .-- creating $QUICK_CA_CFG_FILE ----------------------------------------.
@@ -168,6 +168,7 @@ new_certs_dir     = \$dir/customer_certs
 database          = $ROOT_CA_INDEX_FILE
 serial            = $ROOT_CA_SERIAL_FILE
 RANDFILE          = \$dir/ca_config/.rand
+unique_subject    = no
 
 # The root CA key certificate.
 private_key       = $ROOT_CA_KEY_FILE
@@ -254,7 +255,7 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
-[ usr_cert ]
+[ client_cert ]
 # Extensions for client certificates ('man x509v3_config').
 basicConstraints = CA:FALSE
 nsCertType = client, email
@@ -339,6 +340,7 @@ new_certs_dir     = \$dir/customer_certs
 database          = $ISSUING_CA_INDEX_FILE
 serial            = $ISSUING_CA_SERIAL_FILE
 RANDFILE          = \$dir/ca_config/.rand
+unique_subject    = no
 
 # The root CA key certificate.
 private_key       = $ISSUING_CA_KEY_FILE
@@ -425,7 +427,7 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
-[ usr_cert ]
+[ client_cert ]
 # Extensions for client certificates ('man x509v3_config').
 basicConstraints = CA:FALSE
 nsCertType = client, email
@@ -502,7 +504,7 @@ read TMP
 echo ::
 echo :: Verifying the Issuing CA file against the Root CA certificate
 echo ::
-openssl verify -CAfile $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE
+openssl verify -CAfile $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE || exit 1
 
 
 echo ::
