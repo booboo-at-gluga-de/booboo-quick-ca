@@ -1,5 +1,7 @@
  * optional enable usage without an Issuing CA
- * variables for key length of CA certificates and customer certificates
  * variables for validity period for certificates
  * if issuing a client certificate, maybe we want to put users eMail
    address into the email field too (not only in the CN field)
+ * create issuing CA with year in the filename
+ * script for renewing issuing ca
+ * configuration in which formats to produce customer certs

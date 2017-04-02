@@ -96,8 +96,22 @@ ROOT_CA_COMMON_NAME_DEFAULT="RootCA.example.com"
 ISSUING_CA_COMMON_NAME_DEFAULT="IssuingCA.example.com"
 
 ###########################################################################
-# Variables for the booboo-quick-ca scripts
+# Key length
 ###########################################################################
+#
+# Which key length (in bits) do you want to use for the private keys?
+
+ROOT_CA_KEY_LENTH=4096
+ISSUING_CA_KEY_LENTH=4096
+CUSTOMER_CERT_KEY_LENTH=2048
+
+###########################################################################
+# Path settings
+###########################################################################
+#
+# Where to store files (certificates, keys, config files)
+#
+# Usually there should be no reason for changing paths
 
 ROOT_CA_INDEX_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_index.txt
 ROOT_CA_SERIAL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_serial
@@ -278,7 +292,7 @@ END
 echo ::
 echo :: Creating Key for Root CA...
 echo ::
-openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE 4096
+openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE $ROOT_CA_KEY_LENTH
 
 chmod 400 $ROOT_CA_KEY_FILE
 
@@ -450,7 +464,7 @@ END
 echo ::
 echo :: Creating Key for Issuing CA...
 echo ::
-openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE 4096
+openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE $ISSUING_CA_KEY_LENTH
 
 chmod 400 $ISSUING_CA_KEY_FILE
 
