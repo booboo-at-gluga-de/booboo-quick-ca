@@ -67,20 +67,6 @@ echo ::
 echo :: Creating config files...
 echo ::
 
-# .-- default values -----------------------------------------------------.
-#
-# Attention: If you want your own defaults do   N O T   change them here!
-#            Change them in $QUICK_CA_CFG_FILE
-
-COUNTRY_NAME_DEFAULT=${COUNTRY_NAME_DEFAULT:-"DE"}
-STATE_OR_PROVINCE_NAME_DEFAULT=${STATE_OR_PROVINCE_NAME_DEFAULT:-"Gallien"}
-LOCALITY_NAME_DEFAULT=${LOCALITY_NAME_DEFAULT:-"Gallisches Dorf"}
-ORGANIZATION_NAME_DEFAULT=${ORGANIZATION_NAME_DEFAULT:-"Die Gallier"}
-ORGANIZATIONAL_UNIT_NAME_DEFAULT=${ORGANIZATIONAL_UNIT_NAME_DEFAULT:-""}
-EMAILADDRESS_DEFAULT=${EMAILADDRESS_DEFAULT:-"certificates@example.com"}
-ROOT_CA_COMMON_NAME_DEFAULT=${ROOT_CA_COMMON_NAME_DEFAULT:-"RootCA.example.com"}
-ISSUING_CA_COMMON_NAME_DEFAULT=${ISSUING_CA_COMMON_NAME_DEFAULT:-"IssuingCA.example.com"}
-
 #.
 # .-- creating $QUICK_CA_CFG_FILE ----------------------------------------.
 if [[ ! -f $QUICK_CA_CFG_FILE ]]; then
