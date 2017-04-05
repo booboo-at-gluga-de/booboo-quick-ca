@@ -126,10 +126,14 @@ ISSUING_CA_SERIAL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_serial
 ISSUING_CA_CRL_NUMBER_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_crlnumber
 ISSUING_CA_CRL_PEM_FILE=\$BOOBOO_QUICK_CA_BASE/crl/issuing_ca.crl.pem
 ISSUING_CA_OPENSSL_CNF_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_openssl.cnf
+ISSUING_CA_DATE_EXTENSION=\$(date +%Y)
+ISSUING_CA_KEY_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_private_keys/issuing_ca.\${ISSUING_CA_DATE_EXTENSION}.key.pem
 ISSUING_CA_KEY_FILE=\$BOOBOO_QUICK_CA_BASE/ca_private_keys/issuing_ca.key.pem
+ISSUING_CA_CERT_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/issuing_ca.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
 ISSUING_CA_CERT_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/issuing_ca.cert.pem
 ISSUING_CA_CSR_FILE=\$BOOBOO_QUICK_CA_BASE/csr/issuing_ca.csr.pem
 
+CA_CHAIN_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
 CA_CHAIN_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain.cert.pem
 END
 
@@ -464,9 +468,10 @@ END
 echo ::
 echo :: Creating Key for Issuing CA...
 echo ::
-openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE $ISSUING_CA_KEY_LENTH
+openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENTH
 
-chmod 400 $ISSUING_CA_KEY_FILE
+chmod 400 $ISSUING_CA_KEY_FILE_FULL
+ln -s $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
 
 echo ::
 echo :: Creating Certificate Signing Request \(CSR\) for Issuing CA...
@@ -475,7 +480,7 @@ echo ::
 # Use the intermediate key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
 
 openssl req -config $ISSUING_CA_OPENSSL_CNF_FILE -new -sha256 \
-      -key $ISSUING_CA_KEY_FILE -out $ISSUING_CA_CSR_FILE
+      -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
 
 echo ::
 echo :: Creating Issuing CA certificate...
@@ -487,16 +492,17 @@ echo ::
 
 openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_intermediate_ca \
       -days 3652 -notext -md sha256 \
-      -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE
+      -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
 
-chmod 444 $ISSUING_CA_CERT_FILE
+chmod 444 $ISSUING_CA_CERT_FILE_FULL
+ln -s $ISSUING_CA_CERT_FILE_FULL $ISSUING_CA_CERT_FILE
 
 
 echo ::
 echo :: Please verify your new Issuing CA Certificate:
 echo :: ----------------------------------------------
 echo ::
-openssl x509 -noout -text -in $ISSUING_CA_CERT_FILE
+openssl x509 -noout -text -in $ISSUING_CA_CERT_FILE_FULL
 echo ::
 echo -n ":: Please verify your Issuing CA and press ENTER if OK "
 read TMP
@@ -504,7 +510,7 @@ read TMP
 echo ::
 echo :: Verifying the Issuing CA file against the Root CA certificate
 echo ::
-openssl verify -CAfile $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE || exit 1
+openssl verify -CAfile $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE_FULL || exit 1
 
 
 echo ::
@@ -514,6 +520,7 @@ echo ::
 # certificates together. This can be used to verify certificates signed by
 # the intermediate CA.
 
-cat $ISSUING_CA_CERT_FILE $ROOT_CA_CERT_FILE > $CA_CHAIN_FILE
-chmod 444 $CA_CHAIN_FILE
-echo :: CA chain file is: $CA_CHAIN_FILE
+cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE > $CA_CHAIN_FILE_FULL
+chmod 444 $CA_CHAIN_FILE_FULL
+ln -s $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
+echo :: CA chain file is: $CA_CHAIN_FILE_FULL
