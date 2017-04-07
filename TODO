@@ -3,3 +3,4 @@
    address into the email field too (not only in the CN field)
  * script for renewing issuing ca
  * configuration in which formats to produce customer certs
+ * move CUSTOMER_CERT variables for path settings into the config file

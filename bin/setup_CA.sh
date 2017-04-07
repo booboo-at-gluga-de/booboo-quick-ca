@@ -101,9 +101,9 @@ ISSUING_CA_COMMON_NAME_DEFAULT="IssuingCA.example.com"
 #
 # Which key length (in bits) do you want to use for the private keys?
 
-ROOT_CA_KEY_LENTH=4096
-ISSUING_CA_KEY_LENTH=4096
-CUSTOMER_CERT_KEY_LENTH=2048
+ROOT_CA_KEY_LENGTH=4096
+ISSUING_CA_KEY_LENGTH=4096
+CUSTOMER_CERT_KEY_LENGTH=2048
 
 ###########################################################################
 # Certificate life time
@@ -306,7 +306,7 @@ END
 echo ::
 echo :: Creating Key for Root CA...
 echo ::
-openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE $ROOT_CA_KEY_LENTH
+openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE $ROOT_CA_KEY_LENGTH
 
 chmod 400 $ROOT_CA_KEY_FILE
 
@@ -478,7 +478,7 @@ END
 echo ::
 echo :: Creating Key for Issuing CA...
 echo ::
-openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENTH
+openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
 
 chmod 400 $ISSUING_CA_KEY_FILE_FULL
 ln -s $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE

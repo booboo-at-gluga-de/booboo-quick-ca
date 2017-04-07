@@ -112,7 +112,9 @@ echo :: Creating Key...
 echo ::
 
 umask 077
-openssl genrsa -aes256 -out $CUSTOMER_CERT_KEY_FILE $CUSTOMER_CERT_KEY_LENTH
+set -x
+openssl genrsa -aes256 -out $CUSTOMER_CERT_KEY_FILE $CUSTOMER_CERT_KEY_LENGTH
+set +x
 chmod 400 $CUSTOMER_CERT_KEY_FILE
 
 echo ::
