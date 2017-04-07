@@ -106,6 +106,16 @@ ISSUING_CA_KEY_LENTH=4096
 CUSTOMER_CERT_KEY_LENTH=2048
 
 ###########################################################################
+# Certificate life time
+###########################################################################
+#
+# How long should your certificates be valid? (in days)
+
+ROOT_CA_LIFE_TIME=3653
+ISSUING_CA_LIFE_TIME=1827
+CUSTOMER_CERT_LIFE_TIME=365
+
+###########################################################################
 # Path settings
 ###########################################################################
 #
@@ -304,7 +314,7 @@ echo ::
 echo :: Creating Root CA certificate...
 echo ::
 openssl req -config $ROOT_CA_OPENSSL_CNF_FILE -key $ROOT_CA_KEY_FILE \
-      -new -x509 -days 7305 -sha256 -extensions v3_ca -out $ROOT_CA_CERT_FILE
+      -new -x509 -days $ROOT_CA_LIFE_TIME -sha256 -extensions v3_ca -out $ROOT_CA_CERT_FILE
 
 chmod 444 $ROOT_CA_CERT_FILE
 
@@ -491,7 +501,7 @@ echo ::
 # This time, specify the root CA configuration file
 
 openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_intermediate_ca \
-      -days 3652 -notext -md sha256 \
+      -days $ISSUING_CA_LIFE_TIME -notext -md sha256 \
       -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
 
 chmod 444 $ISSUING_CA_CERT_FILE_FULL

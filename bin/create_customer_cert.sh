@@ -138,7 +138,7 @@ echo ::
 # use the usr_cert extension.
 
 openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
-      -days 375 -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE \
+      -days $CUSTOMER_CERT_LIFE_TIME -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE \
       -out $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
 chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM
 
@@ -177,6 +177,7 @@ echo ::
 echo :: Providing the certificate in DER format...
 echo ::
 openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER && echo :: OK
+chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
 
 echo ::
 echo :: Providing a complete keystore in PKCS12 format...
@@ -187,6 +188,11 @@ openssl pkcs12 -export -out $CUSTOMER_CERT_PKCS12_FILE -inkey $CUSTOMER_CERT_KEY
 echo ::
 echo :: Providing a complete keystore in Java Keystore \(jks\) format...
 echo ::
+echo :: As \"destination keystore password\" please give the password you want to
+echo :: set for the jks file.
+echo :: As \"source keystore password\" you need to give the password you just did
+echo :: set for the PKCS12 keystore \(we just convert this one now\)
+
 type keytool >/dev/null 2>/dev/null
 HAVE_KEYTOOL=$?
 if [[ $HAVE_KEYTOOL -eq 0 ]]; then
