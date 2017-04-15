@@ -116,6 +116,21 @@ ISSUING_CA_LIFE_TIME=1827
 CUSTOMER_CERT_LIFE_TIME=365
 
 ###########################################################################
+# Output formats for customer certificates
+###########################################################################
+#
+# Which formats do you want to produce your customer certificates in?
+# set each of them to "yes" or "no"
+
+# DER format?
+CUSTOMER_CERT_CREATE_DER="yes"
+# PKCS12 keystore format (including CA certificate)?
+CUSTOMER_CERT_CREATE_PKCS12="yes"
+# Java keystore format (jks) including CA certificate?
+# (if you set this to yes, PKCS12 is also created, because technically needed)
+CUSTOMER_CERT_CREATE_JKS="yes"
+
+###########################################################################
 # Path settings
 ###########################################################################
 #

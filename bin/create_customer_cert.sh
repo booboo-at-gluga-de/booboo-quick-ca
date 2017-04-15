@@ -31,6 +31,7 @@ fi
 BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
+HAVE_KEYTOOL=1
 CUSTOMER_CERT_TYPE="server_cert"
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
@@ -175,39 +176,45 @@ echo ::
 openssl verify -CAfile $CA_CHAIN_FILE $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
 # should report www.example.com.cert.pem: OK
 
-echo ::
-echo :: Providing the certificate in DER format...
-echo ::
-openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER && echo :: OK
-chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
+if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
+    echo ::
+    echo :: Providing the certificate in DER format...
+    echo ::
+    openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER && echo :: OK
+    chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
+fi
 
-echo ::
-echo :: Providing a complete keystore in PKCS12 format...
-echo ::
-openssl pkcs12 -export -out $CUSTOMER_CERT_PKCS12_FILE -inkey $CUSTOMER_CERT_KEY_FILE \
-    -in $CUSTOMER_CERT_CERT_FILE_PEM -certfile $CA_CHAIN_FILE
+if [ $CUSTOMER_CERT_CREATE_PKCS12 = "yes" -o $CUSTOMER_CERT_CREATE_JKS = "yes" ]; then
+    echo ::
+    echo :: Providing a complete keystore in PKCS12 format...
+    echo ::
+    openssl pkcs12 -export -out $CUSTOMER_CERT_PKCS12_FILE -inkey $CUSTOMER_CERT_KEY_FILE \
+        -in $CUSTOMER_CERT_CERT_FILE_PEM -certfile $CA_CHAIN_FILE
+fi
 
-echo ::
-echo :: Providing a complete keystore in Java Keystore \(jks\) format...
-echo ::
-echo :: As \"destination keystore password\" please give the password you want to
-echo :: set for the jks file.
-echo :: As \"source keystore password\" you need to give the password you just did
-echo :: set for the PKCS12 keystore \(we just convert this one now\)
+if [[ $CUSTOMER_CERT_CREATE_JKS = "yes" ]]; then
+    echo ::
+    echo :: Providing a complete keystore in Java Keystore \(jks\) format...
+    echo ::
+    echo :: As \"destination keystore password\" please give the password you want to
+    echo :: set for the jks file.
+    echo :: As \"source keystore password\" you need to give the password you just did
+    echo :: set for the PKCS12 keystore \(we just convert this one now\)
 
-type keytool >/dev/null 2>/dev/null
-HAVE_KEYTOOL=$?
-if [[ $HAVE_KEYTOOL -eq 0 ]]; then
-    # create a complete keystore (key, Cert, intermediate)
-    # according to https://www.tbs-certificates.co.uk/FAQ/en/626.html
-    # keytool -importkeystore -srckeystore [MY_FILE.p12] -srcstoretype pkcs12
-    #  -srcalias [ALIAS_SRC] -destkeystore [MY_KEYSTORE.jks]
-    #  -deststoretype jks -deststorepass [PASSWORD_JKS] -destalias [ALIAS_DEST]
+    type keytool >/dev/null 2>/dev/null
+    HAVE_KEYTOOL=$?
+    if [[ $HAVE_KEYTOOL -eq 0 ]]; then
+        # create a complete keystore (key, Cert, intermediate)
+        # according to https://www.tbs-certificates.co.uk/FAQ/en/626.html
+        # keytool -importkeystore -srckeystore [MY_FILE.p12] -srcstoretype pkcs12
+        #  -srcalias [ALIAS_SRC] -destkeystore [MY_KEYSTORE.jks]
+        #  -deststoretype jks -deststorepass [PASSWORD_JKS] -destalias [ALIAS_DEST]
 
-    keytool -importkeystore -srckeystore $CUSTOMER_CERT_PKCS12_FILE -srcstoretype pkcs12 \
-        -destkeystore $CUSTOMER_CERT_JKS_FILE -deststoretype jks
-else
-    echo :: Sorry, no keytool binary found in the PATH, skipping creation of jks
+        keytool -importkeystore -srckeystore $CUSTOMER_CERT_PKCS12_FILE -srcstoretype pkcs12 \
+            -destkeystore $CUSTOMER_CERT_JKS_FILE -deststoretype jks
+    else
+        echo :: Sorry, no keytool binary found in the PATH, skipping creation of jks
+    fi
 fi
 
 echo ::
@@ -220,11 +227,15 @@ echo ::
 echo :: The certificate in PEM format:
 ls $CUSTOMER_CERT_CERT_FILE_PEM
 echo ::
-echo :: The certificate in DER format \(as an alternative\):
-ls $CUSTOMER_CERT_CERT_FILE_DER
-echo ::
-echo :: A keystore containing the private key, the certificate and needed CA in PKCS12 format:
-ls $CUSTOMER_CERT_PKCS12_FILE
+if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
+    echo :: The certificate in DER format \(as an alternative\):
+    ls $CUSTOMER_CERT_CERT_FILE_DER
+    echo ::
+fi
+if [ $CUSTOMER_CERT_CREATE_PKCS12 = "yes" -o $CUSTOMER_CERT_CREATE_JKS = "yes" ]; then
+    echo :: A keystore containing the private key, the certificate and needed CA in PKCS12 format:
+    ls $CUSTOMER_CERT_PKCS12_FILE
+fi
 
 if [[ $HAVE_KEYTOOL -eq 0 ]]; then
     echo ::
