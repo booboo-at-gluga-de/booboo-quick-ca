@@ -106,6 +106,21 @@ ISSUING_CA_KEY_LENGTH=4096
 CUSTOMER_CERT_KEY_LENGTH=2048
 
 ###########################################################################
+# Use a separate issuing CA?
+###########################################################################
+#
+# All the professional and community based certificate authorities use
+# a root CA certificate and a separate issuing CA certificate (issued by
+# the root CA certificate) because it makes key management more flexible
+# for them. That's why "yes" is the default here.
+# However this may seem oversized for some private usecases so decide
+# yourself.
+# If set to "no", the root CA certificate will be used as issuing CA too.
+#
+# You may set this to "yes" or "no"
+SEPARATE_ISSUING_CA="yes"
+
+###########################################################################
 # Certificate life time
 ###########################################################################
 #
@@ -347,15 +362,16 @@ echo :: Setting up your new issuing CA
 echo :: ==============================
 echo ::
 
-touch $ISSUING_CA_INDEX_FILE
-echo 1000 > $ISSUING_CA_SERIAL_FILE
+if [[ $SEPARATE_ISSUING_CA = "yes" ]]; then
+    touch $ISSUING_CA_INDEX_FILE
+    echo 1000 > $ISSUING_CA_SERIAL_FILE
 
-# crlnumber is used to keep track of certificate revocation lists.
-echo 1000 > $ISSUING_CA_CRL_NUMBER_FILE
+    # crlnumber is used to keep track of certificate revocation lists.
+    echo 1000 > $ISSUING_CA_CRL_NUMBER_FILE
 
 
-# .-- issuing_ca_openssl.cnf ---------------------------------------------.
-cat > $ISSUING_CA_OPENSSL_CNF_FILE <<END
+    # .-- issuing_ca_openssl.cnf ---------------------------------------------.
+    cat > $ISSUING_CA_OPENSSL_CNF_FILE <<END
 [ ca ]
 # see 'man ca'
 default_ca = CA_default
@@ -490,62 +506,74 @@ extendedKeyUsage = critical, OCSPSigning
 END
 #.
 
-echo ::
-echo :: Creating Key for Issuing CA...
-echo ::
-openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
+    echo ::
+    echo :: Creating Key for Issuing CA...
+    echo ::
+    openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
 
-chmod 400 $ISSUING_CA_KEY_FILE_FULL
-ln -s $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
+    chmod 400 $ISSUING_CA_KEY_FILE_FULL
+    ln -s $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
 
-echo ::
-echo :: Creating Certificate Signing Request \(CSR\) for Issuing CA...
-echo ::
+    echo ::
+    echo :: Creating Certificate Signing Request \(CSR\) for Issuing CA...
+    echo ::
 
-# Use the intermediate key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
+    # Use the intermediate key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
 
-openssl req -config $ISSUING_CA_OPENSSL_CNF_FILE -new -sha256 \
-      -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
+    openssl req -config $ISSUING_CA_OPENSSL_CNF_FILE -new -sha256 \
+          -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
 
-echo ::
-echo :: Creating Issuing CA certificate...
-echo ::
-# To create an intermediate certificate, use the root CA with the v3_intermediate_ca extension to sign the intermediate CSR.
-# The intermediate certificate should be valid for a shorter period than the root certificate. Ten years would be reasonable.
+    echo ::
+    echo :: Creating Issuing CA certificate...
+    echo ::
+    # To create an intermediate certificate, use the root CA with the v3_intermediate_ca extension to sign the intermediate CSR.
+    # The intermediate certificate should be valid for a shorter period than the root certificate. Ten years would be reasonable.
 
-# This time, specify the root CA configuration file
+    # This time, specify the root CA configuration file
 
-openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_intermediate_ca \
-      -days $ISSUING_CA_LIFE_TIME -notext -md sha256 \
-      -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
+    openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_intermediate_ca \
+          -days $ISSUING_CA_LIFE_TIME -notext -md sha256 \
+          -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
 
-chmod 444 $ISSUING_CA_CERT_FILE_FULL
-ln -s $ISSUING_CA_CERT_FILE_FULL $ISSUING_CA_CERT_FILE
-
-
-echo ::
-echo :: Please verify your new Issuing CA Certificate:
-echo :: ----------------------------------------------
-echo ::
-openssl x509 -noout -text -in $ISSUING_CA_CERT_FILE_FULL
-echo ::
-echo -n ":: Please verify your Issuing CA and press ENTER if OK "
-read TMP
-
-echo ::
-echo :: Verifying the Issuing CA file against the Root CA certificate
-echo ::
-openssl verify -CAfile $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE_FULL || exit 1
+    chmod 444 $ISSUING_CA_CERT_FILE_FULL
+    ln -s $ISSUING_CA_CERT_FILE_FULL $ISSUING_CA_CERT_FILE
 
 
-echo ::
-echo :: Creating a CA certificate chain file...
-echo ::
-# To create the CA certificate chain, concatenate the intermediate and root
-# certificates together. This can be used to verify certificates signed by
-# the intermediate CA.
+    echo ::
+    echo :: Please verify your new Issuing CA Certificate:
+    echo :: ----------------------------------------------
+    echo ::
+    openssl x509 -noout -text -in $ISSUING_CA_CERT_FILE_FULL
+    echo ::
+    echo -n ":: Please verify your Issuing CA and press ENTER if OK "
+    read TMP
 
-cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE > $CA_CHAIN_FILE_FULL
-chmod 444 $CA_CHAIN_FILE_FULL
-ln -s $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
-echo :: CA chain file is: $CA_CHAIN_FILE_FULL
+    echo ::
+    echo :: Verifying the Issuing CA file against the Root CA certificate
+    echo ::
+    openssl verify -CAfile $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE_FULL || exit 1
+
+
+    echo ::
+    echo :: Creating a CA certificate chain file...
+    echo ::
+    # To create the CA certificate chain, concatenate the intermediate and root
+    # certificates together. This can be used to verify certificates signed by
+    # the intermediate CA.
+
+    cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE > $CA_CHAIN_FILE_FULL
+    chmod 444 $CA_CHAIN_FILE_FULL
+    ln -s $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
+    echo :: CA chain file is: $CA_CHAIN_FILE_FULL
+else
+    # $SEPARATE_ISSUING_CA = "no"
+    echo ::
+    echo :: As you decided to work without a separate Issuing CA Certificate
+    echo :: just symlinking you Root CA files as Issuing CA files
+    ln -s $ROOT_CA_INDEX_FILE $ISSUING_CA_INDEX_FILE
+    ln -s $ROOT_CA_CRL_NUMBER_FILE $ISSUING_CA_CRL_NUMBER_FILE
+    ln -s $ROOT_CA_OPENSSL_CNF_FILE $ISSUING_CA_OPENSSL_CNF_FILE
+    ln -s $ROOT_CA_KEY_FILE $ISSUING_CA_KEY_FILE
+    ln -s $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE
+    ln -s $ROOT_CA_CERT_FILE $CA_CHAIN_FILE
+fi
