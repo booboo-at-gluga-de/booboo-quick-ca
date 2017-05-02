@@ -4,6 +4,27 @@
 # this script initializes the CA with all needed config files
 # and initially creates the CA (root) certificate
 
+function logical_symlink { # .--------------------------------------------
+    LINK_DEST=$1
+    LINK_SOURCE=$2
+
+    BASENAME_LINK_DEST=$(basename $LINK_DEST)
+    BASENAME_LINK_SOURCE=$(basename $LINK_SOURCE)
+    DIRNAME_LINK_DEST=$(dirname $LINK_DEST)
+    DIRNAME_LINK_SOURCE=$(dirname $LINK_SOURCE)
+
+    if [[ $DIRNAME_LINK_DEST = $DIRNAME_LINK_SOURCE ]]; then
+        echo ":: in $DIRNAME_LINK_DEST symlinking $BASENAME_LINK_SOURCE -> $BASENAME_LINK_DEST"
+        cd $DIRNAME_LINK_DEST
+        ln -s $BASENAME_LINK_DEST $BASENAME_LINK_SOURCE
+        cd - >/dev/null
+    else
+        echo ":: symlinking $LINK_SOURCE -> $LINK_DEST"
+        ln -s $LINK_DEST $LINK_SOURCE
+    fi
+}
+#.
+
 if [[ $EUID -eq 0 ]]; then
     echo
     echo You should not run your CA as root user.
@@ -512,7 +533,7 @@ END
     openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
 
     chmod 400 $ISSUING_CA_KEY_FILE_FULL
-    ln -s $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
+    logical_symlink $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
 
     echo ::
     echo :: Creating Certificate Signing Request \(CSR\) for Issuing CA...
@@ -536,7 +557,7 @@ END
           -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
 
     chmod 444 $ISSUING_CA_CERT_FILE_FULL
-    ln -s $ISSUING_CA_CERT_FILE_FULL $ISSUING_CA_CERT_FILE
+    logical_symlink $ISSUING_CA_CERT_FILE_FULL $ISSUING_CA_CERT_FILE
 
 
     echo ::
@@ -563,17 +584,17 @@ END
 
     cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE > $CA_CHAIN_FILE_FULL
     chmod 444 $CA_CHAIN_FILE_FULL
-    ln -s $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
+    logical_symlink $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
     echo :: CA chain file is: $CA_CHAIN_FILE_FULL
 else
     # $SEPARATE_ISSUING_CA = "no"
     echo ::
     echo :: As you decided to work without a separate Issuing CA Certificate
     echo :: just symlinking you Root CA files as Issuing CA files
-    ln -s $ROOT_CA_INDEX_FILE $ISSUING_CA_INDEX_FILE
-    ln -s $ROOT_CA_CRL_NUMBER_FILE $ISSUING_CA_CRL_NUMBER_FILE
-    ln -s $ROOT_CA_OPENSSL_CNF_FILE $ISSUING_CA_OPENSSL_CNF_FILE
-    ln -s $ROOT_CA_KEY_FILE $ISSUING_CA_KEY_FILE
-    ln -s $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE
-    ln -s $ROOT_CA_CERT_FILE $CA_CHAIN_FILE
+    logical_symlink $ROOT_CA_INDEX_FILE $ISSUING_CA_INDEX_FILE
+    logical_symlink $ROOT_CA_CRL_NUMBER_FILE $ISSUING_CA_CRL_NUMBER_FILE
+    logical_symlink $ROOT_CA_OPENSSL_CNF_FILE $ISSUING_CA_OPENSSL_CNF_FILE
+    logical_symlink $ROOT_CA_KEY_FILE $ISSUING_CA_KEY_FILE
+    logical_symlink $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE
+    logical_symlink $ROOT_CA_CERT_FILE $CA_CHAIN_FILE
 fi

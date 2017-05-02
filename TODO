@@ -2,7 +2,6 @@
    address into the email field too (not only in the CN field)
  * script for renewing issuing ca
  * move CUSTOMER_CERT variables for path settings into the config file
- * wherever creating symlinks: create them with relative paths
  * always give the CN as SAN too (some browsers expect this)
  * create_customer_cert.sh should get params to set subject alternate
    names (SANs)
