@@ -339,6 +339,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+subjectAltName = @alt_names_server_cert
 
 [ crl_ext ]
 # Extension for CRLs ('man x509v3_config').
@@ -512,6 +513,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+subjectAltName = @alt_names_server_cert
 
 [ crl_ext ]
 # Extension for CRLs ('man x509v3_config').

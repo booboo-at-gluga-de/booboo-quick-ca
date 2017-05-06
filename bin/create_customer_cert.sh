@@ -126,11 +126,15 @@ TMP_OPENSSL_CNF_FILE=$(mktemp --tmpdir=$BOOBOO_QUICK_CA_BASE/tmp --suffix=.cnf o
 cp $ISSUING_CA_OPENSSL_CNF_FILE $TMP_OPENSSL_CNF_FILE
 sed -i -e "s/^ *commonName_default *=.*/commonName_default              =$CUSTOMER_CERT_CN/" $TMP_OPENSSL_CNF_FILE
 
+# put SANs into the temporary config file
+cat >> $TMP_OPENSSL_CNF_FILE <<END
+
+[alt_names_server_cert]
+DNS.1 = $CUSTOMER_CERT_CN
+END
+
 openssl req -config $TMP_OPENSSL_CNF_FILE \
       -key $CUSTOMER_CERT_KEY_FILE -new -sha256 -out $CUSTOMER_CERT_CSR_FILE
-
-rm $TMP_OPENSSL_CNF_FILE
-
 
 echo ::
 echo :: Creating certificate...
@@ -140,7 +144,7 @@ echo ::
 # extension. If the certificate is going to be used for user authentication,
 # use the usr_cert extension.
 
-openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
+openssl ca -config $TMP_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
       -days $CUSTOMER_CERT_LIFE_TIME -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE \
       -out $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
 chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM
@@ -148,6 +152,8 @@ chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM
 # The $ISSUING_CA_INDEX_FILE  file should contain a line referring to this new certificate.
 
 #V 160420124233Z 1000 unknown ... /CN=www.example.com
+
+rm $TMP_OPENSSL_CNF_FILE
 
 echo ::
 echo :: Please verify your new Certificate:
