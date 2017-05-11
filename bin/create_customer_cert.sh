@@ -129,7 +129,7 @@ sed -i -e "s/^ *commonName_default *=.*/commonName_default              =$CUSTOM
 # put SANs into the temporary config file
 cat >> $TMP_OPENSSL_CNF_FILE <<END
 
-[alt_names_server_cert]
+[alt_names_customer_cert]
 DNS.1 = $CUSTOMER_CERT_CN
 END
 
@@ -210,7 +210,7 @@ if [[ $CUSTOMER_CERT_CREATE_JKS = "yes" ]]; then
     type keytool >/dev/null 2>/dev/null
     HAVE_KEYTOOL=$?
     if [[ $HAVE_KEYTOOL -eq 0 ]]; then
-        # create a complete keystore (key, Cert, intermediate)
+        # create a complete keystore (key, Cert, issuing CA)
         # according to https://www.tbs-certificates.co.uk/FAQ/en/626.html
         # keytool -importkeystore -srckeystore [MY_FILE.p12] -srcstoretype pkcs12
         #  -srcalias [ALIAS_SRC] -destkeystore [MY_KEYSTORE.jks]

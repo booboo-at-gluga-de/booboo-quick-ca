@@ -210,7 +210,7 @@ fi
 
 # The index.txt file is where the OpenSSL ca tool stores the certificate
 # database. Do not delete or edit this file by hand. It should now contain
-# a line that refers to the intermediate certificate.
+# a line that refers to the issuing CA certificate.
 touch $ROOT_CA_INDEX_FILE
 
 echo 1000 > $ROOT_CA_SERIAL_FILE
@@ -312,13 +312,15 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+subjectAltName = @alt_names_v3_ca
 
-[ v3_intermediate_ca ]
-# Extensions for a typical intermediate CA ('man x509v3_config').
+[ v3_issuing_ca ]
+# Extensions for a typical issuing CA ('man x509v3_config').
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+subjectAltName = @alt_names_v3_issuing_ca
 
 [ client_cert ]
 # Extensions for client certificates ('man x509v3_config').
@@ -329,6 +331,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, emailProtection
+subjectAltName = @alt_names_customer_cert
 
 [ server_cert ]
 # Extensions for server certificates ('man x509v3_config').
@@ -339,7 +342,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
-subjectAltName = @alt_names_server_cert
+subjectAltName = @alt_names_customer_cert
 
 [ crl_ext ]
 # Extension for CRLs ('man x509v3_config').
@@ -352,6 +355,12 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, OCSPSigning
+
+[alt_names_v3_ca]
+DNS.1 = $ROOT_CA_COMMON_NAME_DEFAULT
+
+[alt_names_v3_issuing_ca]
+DNS.1 = $ISSUING_CA_COMMON_NAME_DEFAULT
 END
 #.
 
@@ -486,13 +495,15 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+subjectAltName = @alt_names_v3_ca
 
-[ v3_intermediate_ca ]
-# Extensions for a typical intermediate CA ('man x509v3_config').
+[ v3_issuing_ca ]
+# Extensions for a typical issuing CA ('man x509v3_config').
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+subjectAltName = @alt_names_v3_issuing_ca
 
 [ client_cert ]
 # Extensions for client certificates ('man x509v3_config').
@@ -503,6 +514,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, emailProtection
+subjectAltName = @alt_names_customer_cert
 
 [ server_cert ]
 # Extensions for server certificates ('man x509v3_config').
@@ -513,7 +525,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
-subjectAltName = @alt_names_server_cert
+subjectAltName = @alt_names_customer_cert
 
 [ crl_ext ]
 # Extension for CRLs ('man x509v3_config').
@@ -526,6 +538,12 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, OCSPSigning
+
+[alt_names_v3_ca]
+DNS.1 = $ROOT_CA_COMMON_NAME_DEFAULT
+
+[alt_names_v3_issuing_ca]
+DNS.1 = $ISSUING_CA_COMMON_NAME_DEFAULT
 END
 #.
 
@@ -541,7 +559,7 @@ END
     echo :: Creating Certificate Signing Request \(CSR\) for Issuing CA...
     echo ::
 
-    # Use the intermediate key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
+    # Use the issuing CA key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
 
     openssl req -config $ISSUING_CA_OPENSSL_CNF_FILE -new -sha256 \
           -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
@@ -549,12 +567,12 @@ END
     echo ::
     echo :: Creating Issuing CA certificate...
     echo ::
-    # To create an intermediate certificate, use the root CA with the v3_intermediate_ca extension to sign the intermediate CSR.
-    # The intermediate certificate should be valid for a shorter period than the root certificate. Ten years would be reasonable.
+    # To create an issuing CA certificate, use the root CA with the v3_issuing_ca extension to sign the issuing CSR.
+    # The issuing CA certificate should be valid for a shorter period than the root certificate. Ten years would be reasonable.
 
     # This time, specify the root CA configuration file
 
-    openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_intermediate_ca \
+    openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_issuing_ca \
           -days $ISSUING_CA_LIFE_TIME -notext -md sha256 \
           -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
 
@@ -580,9 +598,9 @@ END
     echo ::
     echo :: Creating a CA certificate chain file...
     echo ::
-    # To create the CA certificate chain, concatenate the intermediate and root
+    # To create the CA certificate chain, concatenate the issuing CA and root
     # certificates together. This can be used to verify certificates signed by
-    # the intermediate CA.
+    # the issuing CA.
 
     cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE > $CA_CHAIN_FILE_FULL
     chmod 444 $CA_CHAIN_FILE_FULL
