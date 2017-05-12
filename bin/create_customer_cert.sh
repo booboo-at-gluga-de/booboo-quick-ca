@@ -9,12 +9,16 @@
 function help {
     echo
     echo "call using:"
-    echo "$0 [-c|-s] -n \<COMMON_NAME\>"
+    echo "$0 [-c|-s] -n <COMMON_NAME> [-a <SUBJECT_ALTERNATE_NAME>]+"
     echo "$0 -h"
     echo
     echo "where"
     echo "    -c            tells to create a client certificate"
     echo "    -s            tells to create a server certificate (this is the default)"
+    echo "    -a            add a subject alternate name"
+    echo "                  the certificate will be valid for the <COMMON_NAME> as well"
+    echo "                  as for all names given as <SUBJECT_ALTERNATE_NAME>"
+    echo "                  (you may give -a multiple times if needed)"
     echo "    -h            display this help screen and exit"
     echo "    <COMMON_NAME> is the COMMON_NAME (CN) of the certificate you want to create"
     echo
@@ -33,6 +37,7 @@ QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
 HAVE_KEYTOOL=1
 CUSTOMER_CERT_TYPE="server_cert"
+declare -a SUBJECT_ALTERNATE_NAMES
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
@@ -52,7 +57,7 @@ else
 fi
 
 # command line options
-while getopts ":scn:h" opt; do
+while getopts ":scn:a:h" opt; do
     case $opt in
     n)
         CUSTOMER_CERT_CN=$OPTARG
@@ -62,6 +67,9 @@ while getopts ":scn:h" opt; do
         ;;
     s)
         CUSTOMER_CERT_TYPE="server_cert"
+        ;;
+    a)
+        SUBJECT_ALTERNATE_NAMES+=("$OPTARG")
         ;;
     h)
         help
@@ -132,6 +140,13 @@ cat >> $TMP_OPENSSL_CNF_FILE <<END
 [alt_names_customer_cert]
 DNS.1 = $CUSTOMER_CERT_CN
 END
+
+# add all given SANs
+COUNTER=2
+for SAN in ${SUBJECT_ALTERNATE_NAMES[@]}; do
+    echo DNS.$COUNTER = $SAN >> $TMP_OPENSSL_CNF_FILE
+    COUNTER=$(( $COUNTER + 1 ))
+done
 
 openssl req -config $TMP_OPENSSL_CNF_FILE \
       -key $CUSTOMER_CERT_KEY_FILE -new -sha256 -out $CUSTOMER_CERT_CSR_FILE
