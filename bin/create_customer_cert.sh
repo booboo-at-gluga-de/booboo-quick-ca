@@ -4,7 +4,7 @@
 # This script creates a server or client certificate for a CA customer.
 # It also creates the private key file and the certificate signing request (CSR).
 # If you already have a CSR (created on the target machine - as recommended)
-# please use sign.sh
+# please use sign_customer_cert.sh
 
 function help {
     echo
@@ -39,23 +39,6 @@ HAVE_KEYTOOL=1
 CUSTOMER_CERT_TYPE="server_cert"
 declare -a SUBJECT_ALTERNATE_NAMES
 
-if [[ -f $QUICK_CA_CFG_FILE ]]; then
-    source $QUICK_CA_CFG_FILE
-else
-    echo ::
-    echo :: No config file found in $QUICK_CA_CFG_FILE
-    echo ::
-    echo :: Did you already setup your CA by using the setup_CA.sh script?
-    echo :: If no: Please do this first!
-    echo :: If yes: You probably gave a different base directory
-    echo :: \(not $BOOBOO_QUICK_CA_BASE\)
-    echo :: when running setup_CA.sh. Please set the BOOBOO_QUICK_CA_BASE
-    echo :: environment varible to the correct path, e. g. by calling
-    echo ::    BOOBOO_QUICK_CA_BASE=/path/to/base $0
-    echo ::
-    exit 1
-fi
-
 # command line options
 while getopts ":scn:a:h" opt; do
     case $opt in
@@ -88,13 +71,22 @@ if [[ -z $CUSTOMER_CERT_CN ]]; then
     exit 1
 fi
 
-CUSTOMER_CERT_DATE_EXTENSION=$(date +%Y-%m-%d)
-CUSTOMER_CERT_KEY_FILE=$BOOBOO_QUICK_CA_BASE/customer_private_keys/${CUSTOMER_CERT_CN}.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem
-CUSTOMER_CERT_CERT_FILE_PEM=$BOOBOO_QUICK_CA_BASE/customer_certs/${CUSTOMER_CERT_CN}.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem
-CUSTOMER_CERT_CERT_FILE_DER=$BOOBOO_QUICK_CA_BASE/customer_certs/${CUSTOMER_CERT_CN}.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der
-CUSTOMER_CERT_CSR_FILE=$BOOBOO_QUICK_CA_BASE/csr/${CUSTOMER_CERT_CN}.${CUSTOMER_CERT_DATE_EXTENSION}.csr
-CUSTOMER_CERT_PKCS12_FILE=$BOOBOO_QUICK_CA_BASE/customer_certs/${CUSTOMER_CERT_CN}.${CUSTOMER_CERT_DATE_EXTENSION}.p12
-CUSTOMER_CERT_JKS_FILE=$BOOBOO_QUICK_CA_BASE/customer_certs/${CUSTOMER_CERT_CN}.${CUSTOMER_CERT_DATE_EXTENSION}.jks
+if [[ -f $QUICK_CA_CFG_FILE ]]; then
+    source $QUICK_CA_CFG_FILE
+else
+    echo ::
+    echo :: No config file found in $QUICK_CA_CFG_FILE
+    echo ::
+    echo :: Did you already setup your CA by using the setup_CA.sh script?
+    echo :: If no: Please do this first!
+    echo :: If yes: You probably gave a different base directory
+    echo :: \(not $BOOBOO_QUICK_CA_BASE\)
+    echo :: when running setup_CA.sh. Please set the BOOBOO_QUICK_CA_BASE
+    echo :: environment varible to the correct path, e. g. by calling
+    echo ::    BOOBOO_QUICK_CA_BASE=/path/to/base $0
+    echo ::
+    exit 1
+fi
 
 echo ::
 echo :: Checking for already existing files...
@@ -121,9 +113,7 @@ echo :: Creating Key...
 echo ::
 
 umask 077
-set -x
 openssl genrsa -aes256 -out $CUSTOMER_CERT_KEY_FILE $CUSTOMER_CERT_KEY_LENGTH
-set +x
 chmod 400 $CUSTOMER_CERT_KEY_FILE
 
 echo ::
