@@ -1,0 +1,120 @@
+BooBoo Quick CA
+===============
+
+This is my collection of scripts for
+   * setting up a Certificate Authority (CA)
+   * creating Client and Server Certificates from it
+   * sign Certificate Signing Requests (CSRs)
+
+It is designed for everybody who quickly needs to setup a CA,
+e. g. to use it
+   * for an OpenVPN or
+   * for a Webserver granting access to its applications like a webmailer
+     only after authenticating with a client certificate
+
+It covers only the most common usecases of X.509 certificates. (If you
+have special usecases or need to issue certificates daily, you might
+want to look for some different solution.)
+On the other hand BooBoo Quick CA can be set up in less than 5 minutes and
+issue first certificates immediately.
+
+
+Installation
+------------
+
+First of all: Decide where to run your CA.
+For less critical usecases you might want to use some existing workstation
+or server. For a more secure setup, maybe use a separate RasPI or something
+like this which is not connected to any network and stored in a safe place
+most of the time.
+
+In any case: Create a separate user for your CA.
+Switch to this user and e. g. in the home directory do a
+
+   git clone ~/git/booboo-quick-ca.git
+
+if we assume you want to live your CA in ~/booboo-quick-ca
+If you like some other directory, use
+
+   git clone ~/git/booboo-quick-ca.git ~/path/to/ca-dir
+
+
+Setup your CA
+-------------
+
+Switch to your CA user, change to your CA directory and use
+
+   bin/setup_CA.sh
+
+answer y(es) to the question it asks.
+On first run, it creates the config file
+
+   ca_config/booboo-quick-ca.cfg
+
+Edit this file and change the settings according to your needs. All settings
+have comments there. Afterwards again start the setup script
+
+   bin/setup_CA.sh
+
+Now it will create your CA certificate and (if you told so) your Issuing CA
+certificate.
+
+
+Issue Certificates
+------------------
+
+The absolutely most easy way for issuing certificates is to use the
+create_customer_cert.sh script. It does everything for you:
+
+   * create a key pair
+   * create a CSR
+   * sign it
+   * provide the issued certificate in the wanted formats
+     (PEM is always created; DER, PKCS12 and JKS if you did not deselect
+     them in booboo-quick-ca.cfg)
+
+To use it switch to your CA user, change to your CA directory and type
+
+   bin/create_customer_cert.sh -h
+
+to display the help screen explaining all command line options.
+
+
+Sign CSRs
+---------
+
+A more secure way - most IT security experts agree - to create X.509
+certificates is if the secret key never leaves the target system.
+
+For using this way:
+
+   * create the key pair and the CSR directly on the target system
+     (the system where you want to use the certificate) e. g. by using
+     openssl commands.
+   * send the CSR to the CA
+   * use the sign_customer_cert.sh script there to create the certificate
+
+Switch to your CA user, change to your CA directory and use
+
+   bin/sign_customer_cert.sh -h
+
+to display the help screen explaining all command line options.
+
+
+Update BooBoo Quick CA
+----------------------
+
+Updating to the latest version of BooBoo Quick CA is very easy.
+Switch to your CA user, change to your CA directory and use
+
+   git pull
+
+It updates all files delivered from the git. It does not touch your config
+files or the certificates you already created.
+
+
+Warranty
+--------
+
+This little project is provided "as is" and with absolutely no warranty.
+Use at your own risk and only if you understand what you are doing.

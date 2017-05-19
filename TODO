@@ -3,3 +3,6 @@
  * script for renewing issuing ca
  * add a script for revoking certificates
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
+ * put the openssl commands for usage on the target machine into README
+ * create a stable branch, documentation on how to use it in README
+ * add GPL License file and GPL headers in any script
