@@ -1,7 +1,6 @@
- * if issuing a client certificate, maybe we want to put users eMail
-   address into the email field too (not only in the CN field)
  * script for renewing issuing ca
  * add a script for revoking certificates
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
  * put the openssl commands for usage on the target machine into README
  * create a stable branch, documentation on how to use it in README
+ * enhance README: how to cleanup CA

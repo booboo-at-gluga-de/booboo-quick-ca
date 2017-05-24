@@ -132,6 +132,22 @@ EMAILADDRESS_DEFAULT="certificates@example.com"
 ROOT_CA_COMMON_NAME_DEFAULT="RootCA.example.com"
 ISSUING_CA_COMMON_NAME_DEFAULT="IssuingCA.example.com"
 
+# When creating a client certificate and the Common Name (CN) is an eMail
+# address: In any case this eMail address is put into the CN field.
+#
+# Additionaly you might want to put this eMail address into the EMAILADDRESS
+# field (you probably want to use it this way if the user is responsible alone
+# for his client certificate and e. g. should get expiration notes you might
+# send as the only one). In this case: Set to "yes".
+#
+# The other possibility in this case is to fill the EMAILADDRESS field with
+# some general contact (see EMAILADDRESS_DEFAULT setting above) who cares for
+# certificates in your organisation in general.
+# In this case: Set to "no"
+#
+# You may set this to "yes" or "no"
+USE_MAIL_ADDRESS_FOR_CN_AND_EMAIL="yes"
+
 ###########################################################################
 # Key length
 ###########################################################################
