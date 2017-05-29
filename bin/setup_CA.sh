@@ -58,7 +58,7 @@ if [[ -f $QUICK_CA_CFG_FILE ]]; then
 fi
 
 echo ::
-echo :: Setting up your new root CA
+echo :: Setting up your new Root CA
 echo :: ===========================
 echo ::
 echo :: Base directory for you CA is $BOOBOO_QUICK_CA_BASE
@@ -213,6 +213,7 @@ ROOT_CA_CRL_PEM_FILE=\$BOOBOO_QUICK_CA_BASE/crl/root_ca.crl.pem
 ROOT_CA_OPENSSL_CNF_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/root_ca_openssl.cnf
 ROOT_CA_KEY_FILE=\$BOOBOO_QUICK_CA_BASE/ca_private_keys/root_ca.key.pem
 ROOT_CA_CERT_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/root_ca.cert.pem
+ROOT_CA_CRL_FILE=\$BOOBOO_QUICK_CA_BASE/crl/root_ca.crl.pem
 
 ISSUING_CA_INDEX_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_index.txt
 ISSUING_CA_SERIAL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_config/issuing_ca_serial
@@ -224,6 +225,7 @@ ISSUING_CA_KEY_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_private_keys/issuing_ca.\${IS
 ISSUING_CA_KEY_FILE=\$BOOBOO_QUICK_CA_BASE/ca_private_keys/issuing_ca.key.pem
 ISSUING_CA_CERT_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/issuing_ca.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
 ISSUING_CA_CERT_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/issuing_ca.cert.pem
+ISSUING_CA_CRL_FILE=\$BOOBOO_QUICK_CA_BASE/crl/issuing_ca.crl.pem
 ISSUING_CA_CSR_FILE=\$BOOBOO_QUICK_CA_BASE/csr/issuing_ca.csr.pem
 
 CA_CHAIN_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
@@ -427,6 +429,13 @@ openssl x509 -noout -text -in $ROOT_CA_CERT_FILE
 echo ::
 echo -n ":: Please verify your Root CA and press ENTER if OK "
 read TMP
+
+echo ::
+echo :: Creating a Certificate Revocation List \(CRL\) for the Root CA...
+echo ::
+openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
+echo :: You now have:
+openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
 
 echo ::
 echo :: Setting up your new issuing CA
@@ -646,6 +655,14 @@ END
     chmod 444 $CA_CHAIN_FILE_FULL
     logical_symlink $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
     echo :: CA chain file is: $CA_CHAIN_FILE_FULL
+
+    echo ::
+    echo :: Creating a Certificate Revocation List \(CRL\) for the Issuing CA...
+    echo ::
+    openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
+    echo :: You now have:
+    openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
+
 else
     # $SEPARATE_ISSUING_CA = "no"
     echo ::
@@ -657,4 +674,5 @@ else
     logical_symlink $ROOT_CA_KEY_FILE $ISSUING_CA_KEY_FILE
     logical_symlink $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE
     logical_symlink $ROOT_CA_CERT_FILE $CA_CHAIN_FILE
+    logical_symlink $ROOT_CA_CRL_FILE $ISSUING_CA_CRL_FILE
 fi
