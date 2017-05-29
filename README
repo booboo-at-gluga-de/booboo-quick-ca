@@ -101,8 +101,8 @@ Switch to your CA user, change to your CA directory and use
 to display the help screen explaining all command line options.
 
 
-Update BooBoo Quick CA
-----------------------
+Update BooBoo Quick CA to a new version
+---------------------------------------
 
 Updating to the latest version of BooBoo Quick CA is very easy.
 Switch to your CA user, change to your CA directory and use
@@ -111,6 +111,31 @@ Switch to your CA user, change to your CA directory and use
 
 It updates all files delivered from the git. It does not touch your config
 files or the certificates you already created.
+
+
+Create more than one CA
+-----------------------
+
+The most convenient way for setting up more than one Certificate Authority
+(CA) on one machine is to clone the git repo into a different directory
+(see section Installation above) and use it there. This way you can also
+create a differnt user for each CA you are running.
+
+
+Re-Setup your CA
+----------------
+
+After e. g. setting up your first CA and playing around with it a lot
+you may decide now to setup your "real" CA. Therefor you might want to
+remove your previous files.
+
+Switch to your CA user, change to your CA directory and use
+
+   rm -Rf ca_certs ca_config ca_private_keys crl csr customer_certs customer_private_keys
+
+This keeps the binaries of BooBoo Quick CA, but removes all the certificates
+and config files created before.
+Jump to section "Setup your CA" now.
 
 
 Warranty
