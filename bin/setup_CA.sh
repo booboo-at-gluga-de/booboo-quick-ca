@@ -57,6 +57,12 @@ if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 fi
 
+if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    ROOT_CA_CRL_DISTRIBUTION_POINTS_CONFIG_LINE="crlDistributionPoints = $ROOT_CA_CRL_DISTRIBUTION_POINTS"
+else
+    ROOT_CA_CRL_DISTRIBUTION_POINTS_CONFIG_LINE=
+fi
+
 echo ::
 echo :: Setting up your new Root CA
 echo :: ===========================
@@ -197,6 +203,23 @@ CUSTOMER_CERT_CREATE_PKCS12="yes"
 # Java keystore format (jks) including CA certificate?
 # (if you set this to yes, PKCS12 is also created, because technically needed)
 CUSTOMER_CERT_CREATE_JKS="yes"
+
+###########################################################################
+# crlDistributionPoints
+###########################################################################
+#
+# If given these crlDistributionPoints are part of the certificates.
+# Note that you need to run the renew_CRL.sh script at least every 30
+# days to provide valid Certificate Revocation Lists (CRLs).
+#
+# Alternativly you may leave this variables empty. In this case no information
+# about CRLs will be part of the certificates and no CRLs are generated.
+
+# ROOT_CA_CRL_DISTRIBUTION_POINTS="URI:http://example.com/root_ca.crl.pem"
+ROOT_CA_CRL_DISTRIBUTION_POINTS=
+
+# ISSUING_CA_CRL_DISTRIBUTION_POINTS="URI:http://example.com/issuing_ca.crl.pem"
+ISSUING_CA_CRL_DISTRIBUTION_POINTS=
 
 ###########################################################################
 # Path settings
@@ -363,6 +386,7 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 subjectAltName = @alt_names_v3_issuing_ca
+$ROOT_CA_CRL_DISTRIBUTION_POINTS_CONFIG_LINE
 
 [ client_cert ]
 # Extensions for client certificates ('man x509v3_config').
@@ -374,6 +398,7 @@ authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, emailProtection
 subjectAltName = @alt_names_customer_cert
+# crlDistributionPoints =
 
 [ server_cert ]
 # Extensions for server certificates ('man x509v3_config').
@@ -385,6 +410,7 @@ authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 subjectAltName = @alt_names_customer_cert
+# crlDistributionPoints =
 
 [ crl_ext ]
 # Extension for CRLs ('man x509v3_config').
@@ -430,12 +456,17 @@ echo ::
 echo -n ":: Please verify your Root CA and press ENTER if OK "
 read TMP
 
-echo ::
-echo :: Creating a Certificate Revocation List \(CRL\) for the Root CA...
-echo ::
-openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
-echo :: You now have:
-openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
+set -x
+if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    echo ::
+    echo :: Creating a Certificate Revocation List \(CRL\) for the Root CA...
+    echo ::
+    openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
+    echo :: You now have:
+    openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
+    chmod 644 $ROOT_CA_CRL_FILE
+fi
+set +x
 
 echo ::
 echo :: Setting up your new issuing CA
@@ -553,6 +584,7 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 subjectAltName = @alt_names_v3_issuing_ca
+$ROOT_CA_CRL_DISTRIBUTION_POINTS_CONFIG_LINE
 
 [ client_cert ]
 # Extensions for client certificates ('man x509v3_config').
@@ -564,6 +596,7 @@ authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, emailProtection
 subjectAltName = @alt_names_customer_cert
+# crlDistributionPoints =
 
 [ server_cert ]
 # Extensions for server certificates ('man x509v3_config').
@@ -575,6 +608,7 @@ authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 subjectAltName = @alt_names_customer_cert
+# crlDistributionPoints =
 
 [ crl_ext ]
 # Extension for CRLs ('man x509v3_config').
@@ -656,12 +690,15 @@ END
     logical_symlink $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
     echo :: CA chain file is: $CA_CHAIN_FILE_FULL
 
-    echo ::
-    echo :: Creating a Certificate Revocation List \(CRL\) for the Issuing CA...
-    echo ::
-    openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
-    echo :: You now have:
-    openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
+    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+        echo ::
+        echo :: Creating a Certificate Revocation List \(CRL\) for the Issuing CA...
+        echo ::
+        openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
+        echo :: You now have:
+        openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
+        chmod 644 $ISSUING_CA_CRL_FILE
+    fi
 
 else
     # $SEPARATE_ISSUING_CA = "no"
@@ -674,5 +711,7 @@ else
     logical_symlink $ROOT_CA_KEY_FILE $ISSUING_CA_KEY_FILE
     logical_symlink $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE
     logical_symlink $ROOT_CA_CERT_FILE $CA_CHAIN_FILE
-    logical_symlink $ROOT_CA_CRL_FILE $ISSUING_CA_CRL_FILE
+    if [[ -f $ROOT_CA_CRL_FILE ]]; then
+        logical_symlink $ROOT_CA_CRL_FILE $ISSUING_CA_CRL_FILE
+    fi
 fi

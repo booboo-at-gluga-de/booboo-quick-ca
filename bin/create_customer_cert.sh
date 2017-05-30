@@ -137,8 +137,19 @@ echo :: Creating Certificate Signing Request \(CSR\)...
 echo ::
 
 TMP_OPENSSL_CNF_FILE=$(mktemp --tmpdir=$BOOBOO_QUICK_CA_BASE/tmp --suffix=.cnf openssl.XXX)
+
+#
+# suggestion for commonName
+#
 cp $ISSUING_CA_OPENSSL_CNF_FILE $TMP_OPENSSL_CNF_FILE
 sed -i -e "s/^ *commonName_default *=.*/commonName_default              =$CUSTOMER_CERT_CN/" $TMP_OPENSSL_CNF_FILE
+
+#
+# set crlDistributionPoints (if configured)
+#
+if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    sed -i -e "s#^ *\# *crlDistributionPoints *=.*#crlDistributionPoints              =$ISSUING_CA_CRL_DISTRIBUTION_POINTS#" $TMP_OPENSSL_CNF_FILE
+fi
 
 # if issuing a client certificate and CN is a eMail address:
 # suggest to put this eMail address into the email field too
@@ -151,7 +162,9 @@ if [[ $USE_MAIL_ADDRESS_FOR_CN_AND_EMAIL = "yes" ]]; then
     fi
 fi
 
+#
 # put SANs into the temporary config file
+#
 cat >> $TMP_OPENSSL_CNF_FILE <<END
 
 [alt_names_customer_cert]
