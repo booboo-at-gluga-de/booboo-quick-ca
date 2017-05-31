@@ -251,8 +251,10 @@ ISSUING_CA_CERT_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/issuing_ca.cert.pem
 ISSUING_CA_CRL_FILE=\$BOOBOO_QUICK_CA_BASE/crl/issuing_ca.crl.pem
 ISSUING_CA_CSR_FILE=\$BOOBOO_QUICK_CA_BASE/csr/issuing_ca.csr.pem
 
-CA_CHAIN_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
-CA_CHAIN_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain.cert.pem
+CA_CHAIN_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
+CA_CHAIN_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain.cert.pem
+CA_CHAIN_PLUS_CRL_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain_plus_crl.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
+CA_CHAIN_PLUS_CRL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain_plus_crl.cert.pem
 
 CUSTOMER_CERT_DATE_EXTENSION=\$(date +%Y-%m-%d)
 CUSTOMER_CERT_KEY_FILE=\$BOOBOO_QUICK_CA_BASE/customer_private_keys/\${CUSTOMER_CERT_CN}.\${CUSTOMER_CERT_DATE_EXTENSION}.key.pem
@@ -456,7 +458,6 @@ echo ::
 echo -n ":: Please verify your Root CA and press ENTER if OK "
 read TMP
 
-set -x
 if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
     echo ::
     echo :: Creating a Certificate Revocation List \(CRL\) for the Root CA...
@@ -466,7 +467,6 @@ if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
     openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
     chmod 644 $ROOT_CA_CRL_FILE
 fi
-set +x
 
 echo ::
 echo :: Setting up your new issuing CA
@@ -672,14 +672,18 @@ END
     echo -n ":: Please verify your Issuing CA and press ENTER if OK "
     read TMP
 
-    echo ::
-    echo :: Verifying the Issuing CA file against the Root CA certificate
-    echo ::
-    openssl verify -CAfile $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE_FULL || exit 1
+    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+        echo ::
+        echo :: Creating a Certificate Revocation List \(CRL\) for the Issuing CA...
+        echo ::
+        openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
+        echo :: You now have:
+        openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
+        chmod 644 $ISSUING_CA_CRL_FILE
+    fi
 
-
     echo ::
-    echo :: Creating a CA certificate chain file...
+    echo :: Creating CA certificate chain file...
     echo ::
     # To create the CA certificate chain, concatenate the issuing CA and root
     # certificates together. This can be used to verify certificates signed by
@@ -691,14 +695,23 @@ END
     echo :: CA chain file is: $CA_CHAIN_FILE_FULL
 
     if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
-        echo ::
-        echo :: Creating a Certificate Revocation List \(CRL\) for the Issuing CA...
-        echo ::
-        openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
-        echo :: You now have:
-        openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
-        chmod 644 $ISSUING_CA_CRL_FILE
+        cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE $ISSUING_CA_CRL_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE_FULL
+        chmod 444 $CA_CHAIN_PLUS_CRL_FILE_FULL
+        logical_symlink $CA_CHAIN_PLUS_CRL_FILE_FULL $CA_CHAIN_PLUS_CRL_FILE
+        echo :: CA chain file including CRLs is: $CA_CHAIN_PLUS_CRL_FILE_FULL
+    else
+        logical_symlink $CA_CHAIN_FILE $CA_CHAIN_PLUS_CRL_FILE
     fi
+
+    echo ::
+    echo :: Verifying the Issuing CA file against the Root CA certificate
+    echo ::
+    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+        CRL_CHECK_OPTION="-crl_check_all"
+    else
+        CRL_CHECK_OPTION=
+    fi
+    openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $ISSUING_CA_CERT_FILE_FULL || exit 1
 
 else
     # $SEPARATE_ISSUING_CA = "no"
@@ -714,4 +727,9 @@ else
     if [[ -f $ROOT_CA_CRL_FILE ]]; then
         logical_symlink $ROOT_CA_CRL_FILE $ISSUING_CA_CRL_FILE
     fi
+
+    cat $ROOT_CA_CERT_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE_FULL
+    chmod 444 $CA_CHAIN_PLUS_CRL_FILE_FULL
+    logical_symlink $CA_CHAIN_PLUS_CRL_FILE_FULL $CA_CHAIN_PLUS_CRL_FILE
+    echo :: CA chain file including CRL is: $CA_CHAIN_PLUS_CRL_FILE_FULL
 fi

@@ -219,12 +219,18 @@ read TMP
 # in the output.
 
 echo ::
-echo :: Verifying the certificate against the Root CA...
+echo :: Verifying the certificate against the CA...
 echo ::
+
+if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    CRL_CHECK_OPTION="-crl_check_all"
+else
+    CRL_CHECK_OPTION=
+fi
 
 # Use the CA certificate chain file we created earlier to verify that the new
 # certificate has a valid chain of trust.
-openssl verify -CAfile $CA_CHAIN_FILE $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
+openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
 # should report www.example.com.cert.pem: OK
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then

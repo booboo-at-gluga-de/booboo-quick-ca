@@ -19,8 +19,5 @@
     * server: openssl s_server -port 8443 -cert customer_certs/<hostname>.<date>.cert.pem -key customer_private_keys/<hostname>.<date>.key.pem
     * client: openssl s_client -verify_return_error -verify 3 -CAfile ca_certs/ca-chain.cert.pem -connect <hostname>:8443
           or: curl --cacert ./ca_certs/ca-chain.cert.pem https://verleihnix.gallien.stroessenreuther.net:8443/
-    * commandline:
-      cat ca_certs/ca-chain.cert.pem crl/root_ca.crl.pem crl/issuing_ca.crl.pem >tmp/ca_chain_plus_crls.pem
-      openssl verify -crl_check_all -CAfile tmp/ca_chain_plus_crls.pem customer_certs/verleihnix.gallien.stroessenreuther.net.2017-05-30.cert.pem
  * if user mistypes the key password: catch the error and do something helpful
    e. g. retry
