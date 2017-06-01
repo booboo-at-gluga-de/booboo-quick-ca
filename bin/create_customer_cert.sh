@@ -22,11 +22,6 @@
 # If you already have a CSR (created on the target machine - as recommended)
 # please use sign_customer_cert.sh
 
-HEADLINE_COLOR='\033[1;34m'
-RED='\033[1;31m'
-GREEN='\033[0;32m'
-NO_COLOR='\033[0m'
-
 function help {
     echo
     echo "call using:"
@@ -59,6 +54,8 @@ EXISTING_CONFIG_FILES=0
 HAVE_KEYTOOL=1
 CUSTOMER_CERT_TYPE="server_cert"
 declare -a SUBJECT_ALTERNATE_NAMES
+
+source $BOOBOO_QUICK_CA_BASE/bin/common_functions
 
 # command line options
 while getopts ":scn:a:h" opt; do
@@ -235,8 +232,8 @@ fi
 
 # Use the CA certificate chain file we created earlier to verify that the new
 # certificate has a valid chain of trust.
-openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
-# should report www.example.com.cert.pem: OK
+openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CUSTOMER_CERT_CERT_FILE_PEM
+display_rc $? 1
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo ::

@@ -41,11 +41,6 @@ function logical_symlink { # .--------------------------------------------
 }
 #.
 
-HEADLINE_COLOR='\033[1;34m'
-RED='\033[1;31m'
-GREEN='\033[0;32m'
-NO_COLOR='\033[0m'
-
 if [[ $EUID -eq 0 ]]; then
     echo
     echo You should not run your CA as root user.
@@ -58,6 +53,7 @@ BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
 
+source $BOOBOO_QUICK_CA_BASE/bin/common_functions
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 fi
@@ -259,7 +255,7 @@ ISSUING_CA_CSR_FILE=\$BOOBOO_QUICK_CA_BASE/csr/issuing_ca.csr.pem
 CA_CHAIN_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
 CA_CHAIN_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain.cert.pem
 CA_CHAIN_PLUS_CRL_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain_plus_crl.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
-CA_CHAIN_PLUS_CRL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca-chain_plus_crl.cert.pem
+CA_CHAIN_PLUS_CRL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain_plus_crl.cert.pem
 
 CUSTOMER_CERT_DATE_EXTENSION=\$(date +%Y-%m-%d)
 CUSTOMER_CERT_KEY_FILE=\$BOOBOO_QUICK_CA_BASE/customer_private_keys/\${CUSTOMER_CERT_CN}.\${CUSTOMER_CERT_DATE_EXTENSION}.key.pem
@@ -716,7 +712,8 @@ END
     else
         CRL_CHECK_OPTION=
     fi
-    openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $ISSUING_CA_CERT_FILE_FULL || exit 1
+    openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $ISSUING_CA_CERT_FILE_FULL
+    display_rc $? 1
 
 else
     # $SEPARATE_ISSUING_CA = "no"
