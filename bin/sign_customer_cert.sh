@@ -20,6 +20,11 @@
 # This script signs a CSR (Certificate Signing Request) for a CA customer
 # and creates a customer certifcate.
 
+HEADLINE_COLOR='\033[1;34m'
+RED='\033[1;31m'
+GREEN='\033[0;32m'
+NO_COLOR='\033[0m'
+
 function help {
     echo
     echo "call using:"
@@ -89,7 +94,7 @@ if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 else
     echo ::
-    echo :: No config file found in $QUICK_CA_CFG_FILE
+    echo -e :: ${HEADLINE_COLOR}No config file found in $QUICK_CA_CFG_FILE${NO_COLOR}
     echo ::
     echo :: Did you already setup your CA by using the setup_CA.sh script?
     echo :: If no: Please do this first!
@@ -112,7 +117,7 @@ fi
 source $QUICK_CA_CFG_FILE
 
 echo ::
-echo :: Checking for already existing files...
+echo -e :: ${HEADLINE_COLOR}Checking for already existing files...${NO_COLOR}
 echo ::
 for FILE in $CUSTOMER_CERT_CERT_FILE_PEM $CUSTOMER_CERT_CERT_FILE_DER $CUSTOMER_CERT_PKCS12_FILE $CUSTOMER_CERT_JKS_FILE; do
     if [[ -f $FILE ]]; then
@@ -123,7 +128,7 @@ done
 
 if [[ $EXISTING_CONFIG_FILES -gt 0 ]]; then
     echo ::
-    echo :: Files for this certifcate already exist.
+    echo -e :: ${RED}Files for this certifcate already exist.${NO_COLOR}
     echo :: If you want to setup a new one, please remove file\(s\) above.
     echo ::
     exit 1
@@ -132,7 +137,7 @@ else
 fi
 
 echo ::
-echo :: Creating certificate...
+echo -e :: ${HEADLINE_COLOR}Creating certificate...${NO_COLOR}
 echo ::
 # To create a certificate, use the issuing CA to sign the CSR.
 # If the certificate is going to be used on a server, use the server_cert
@@ -169,8 +174,8 @@ rm $TMP_OPENSSL_CNF_FILE
 #V 160420124233Z 1000 unknown ... /CN=www.example.com
 
 echo ::
-echo :: Please verify your new Certificate:
-echo :: -----------------------------------
+echo -e :: ${HEADLINE_COLOR}Please verify your new Certificate:${NO_COLOR}
+echo -e :: ${HEADLINE_COLOR}-----------------------------------${NO_COLOR}
 echo ::
 
 openssl x509 -noout -text -in $CUSTOMER_CERT_CERT_FILE_PEM
@@ -187,7 +192,7 @@ read TMP
 # in the output.
 
 echo ::
-echo :: Verifying the certificate against the CA...
+echo -e :: ${HEADLINE_COLOR}Verifying the certificate against the CA...${NO_COLOR}
 echo ::
 
 if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
@@ -202,7 +207,7 @@ openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE_FULL $CUSTOMER_
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo ::
-    echo :: Providing the certificate in DER format...
+    echo -e :: ${HEADLINE_COLOR}Providing the certificate in DER format...${NO_COLOR}
     echo ::
     openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER && echo :: OK
     chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
@@ -210,7 +215,7 @@ fi
 
 if [ $CUSTOMER_CERT_CREATE_PKCS12 = "yes" -o $CUSTOMER_CERT_CREATE_JKS = "yes" ]; then
     echo ::
-    echo :: Providing a complete keystore in PKCS12 format...
+    echo -e :: ${HEADLINE_COLOR}Providing a complete keystore in PKCS12 format...${NO_COLOR}
     echo ::
     openssl pkcs12 -export -out $CUSTOMER_CERT_PKCS12_FILE -inkey $CUSTOMER_CERT_KEY_FILE \
         -in $CUSTOMER_CERT_CERT_FILE_PEM -certfile $CA_CHAIN_FILE
@@ -218,7 +223,7 @@ fi
 
 if [[ $CUSTOMER_CERT_CREATE_JKS = "yes" ]]; then
     echo ::
-    echo :: Providing a complete keystore in Java Keystore \(jks\) format...
+    echo -e :: ${HEADLINE_COLOR}Providing a complete keystore in Java Keystore \(jks\) format...${NO_COLOR}
     echo ::
     echo :: As \"destination keystore password\" please give the password you want to
     echo :: set for the jks file.
@@ -242,8 +247,8 @@ if [[ $CUSTOMER_CERT_CREATE_JKS = "yes" ]]; then
 fi
 
 echo ::
-echo :: What you got:
-echo :: -------------
+echo -e :: ${HEADLINE_COLOR}What you got:${NO_COLOR}
+echo -e :: ${HEADLINE_COLOR}-------------${NO_COLOR}
 echo ::
 echo :: The certificate in PEM format:
 ls $CUSTOMER_CERT_CERT_FILE_PEM

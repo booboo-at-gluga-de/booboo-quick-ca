@@ -41,6 +41,11 @@ function logical_symlink { # .--------------------------------------------
 }
 #.
 
+HEADLINE_COLOR='\033[1;34m'
+RED='\033[1;31m'
+GREEN='\033[0;32m'
+NO_COLOR='\033[0m'
+
 if [[ $EUID -eq 0 ]]; then
     echo
     echo You should not run your CA as root user.
@@ -64,8 +69,8 @@ else
 fi
 
 echo ::
-echo :: Setting up your new Root CA
-echo :: ===========================
+echo -e :: ${HEADLINE_COLOR}Setting up your new Root CA${NO_COLOR}
+echo -e :: ${HEADLINE_COLOR}===========================${NO_COLOR}
 echo ::
 echo :: Base directory for you CA is $BOOBOO_QUICK_CA_BASE
 echo :: If this is not what you want, set environment variable BOOBOO_QUICK_CA_BASE
@@ -80,7 +85,7 @@ if [[ $(echo $ANSWER | egrep -i "^(y|yes)$" | wc -l) -eq 0 ]]; then
 fi
 
 echo ::
-echo :: Checking base directory...
+echo -e :: ${HEADLINE_COLOR}Checking base directory...${NO_COLOR}
 echo ::
 for FILE in $ROOT_CA_INDEX_FILE $ROOT_CA_SERIAL_FILE $ROOT_CA_KEY_FILE $ROOT_CA_CERT_FILE; do
     if [[ -f $FILE ]]; then
@@ -100,14 +105,14 @@ else
 fi
 
 echo ::
-echo :: Creating sub directories...
+echo -e :: ${HEADLINE_COLOR}Creating sub directories...${NO_COLOR}
 umask 077
 mkdir -p $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/crl $BOOBOO_QUICK_CA_BASE/csr $BOOBOO_QUICK_CA_BASE/tmp
 chmod 700 $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_private_keys $BOOBOO_QUICK_CA_BASE/customer_certs $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/csr $BOOBOO_QUICK_CA_BASE/tmp
 chmod 755 $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/crl
 
 echo ::
-echo :: Creating config files...
+echo -e :: ${HEADLINE_COLOR}Creating config files...${NO_COLOR}
 echo ::
 
 #.
@@ -435,14 +440,14 @@ END
 #.
 
 echo ::
-echo :: Creating Key for Root CA...
+echo -e :: ${HEADLINE_COLOR}Creating Key for Root CA...${NO_COLOR}
 echo ::
 openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE $ROOT_CA_KEY_LENGTH
 
 chmod 400 $ROOT_CA_KEY_FILE
 
 echo ::
-echo :: Creating Root CA certificate...
+echo -e :: ${HEADLINE_COLOR}Creating Root CA certificate...${NO_COLOR}
 echo ::
 openssl req -config $ROOT_CA_OPENSSL_CNF_FILE -key $ROOT_CA_KEY_FILE \
       -new -x509 -days $ROOT_CA_LIFE_TIME -sha256 -extensions v3_ca -out $ROOT_CA_CERT_FILE
@@ -450,8 +455,8 @@ openssl req -config $ROOT_CA_OPENSSL_CNF_FILE -key $ROOT_CA_KEY_FILE \
 chmod 444 $ROOT_CA_CERT_FILE
 
 echo ::
-echo :: Please verify your new Root CA Certificate:
-echo :: -------------------------------------------
+echo -e :: ${HEADLINE_COLOR}Please verify your new Root CA Certificate:${NO_COLOR}
+echo -e :: ${HEADLINE_COLOR}-------------------------------------------${NO_COLOR}
 echo ::
 openssl x509 -noout -text -in $ROOT_CA_CERT_FILE
 echo ::
@@ -460,7 +465,7 @@ read TMP
 
 if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
     echo ::
-    echo :: Creating a Certificate Revocation List \(CRL\) for the Root CA...
+    echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Root CA...${NO_COLOR}
     echo ::
     openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
     echo :: You now have:
@@ -469,8 +474,8 @@ if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
 fi
 
 echo ::
-echo :: Setting up your new issuing CA
-echo :: ==============================
+echo -e :: ${HEADLINE_COLOR}Setting up your new issuing CA${NO_COLOR}
+echo -e :: ${HEADLINE_COLOR}==============================${NO_COLOR}
 echo ::
 
 if [[ $SEPARATE_ISSUING_CA = "yes" ]]; then
@@ -631,7 +636,7 @@ END
 #.
 
     echo ::
-    echo :: Creating Key for Issuing CA...
+    echo -e :: ${HEADLINE_COLOR}Creating Key for Issuing CA...${NO_COLOR}
     echo ::
     openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
 
@@ -639,7 +644,7 @@ END
     logical_symlink $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
 
     echo ::
-    echo :: Creating Certificate Signing Request \(CSR\) for Issuing CA...
+    echo -e :: ${HEADLINE_COLOR}Creating Certificate Signing Request \(CSR\) for Issuing CA...${NO_COLOR}
     echo ::
 
     # Use the issuing CA key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
@@ -648,7 +653,7 @@ END
           -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
 
     echo ::
-    echo :: Creating Issuing CA certificate...
+    echo -e :: ${HEADLINE_COLOR}Creating Issuing CA certificate...${NO_COLOR}
     echo ::
     # To create an issuing CA certificate, use the root CA with the v3_issuing_ca extension to sign the issuing CSR.
     # The issuing CA certificate should be valid for a shorter period than the root certificate. Ten years would be reasonable.
@@ -664,8 +669,8 @@ END
 
 
     echo ::
-    echo :: Please verify your new Issuing CA Certificate:
-    echo :: ----------------------------------------------
+    echo -e :: ${HEADLINE_COLOR}Please verify your new Issuing CA Certificate:${NO_COLOR}
+    echo -e :: ${HEADLINE_COLOR}----------------------------------------------${NO_COLOR}
     echo ::
     openssl x509 -noout -text -in $ISSUING_CA_CERT_FILE_FULL
     echo ::
@@ -674,7 +679,7 @@ END
 
     if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         echo ::
-        echo :: Creating a Certificate Revocation List \(CRL\) for the Issuing CA...
+        echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Issuing CA...${NO_COLOR}
         echo ::
         openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
         echo :: You now have:
@@ -683,7 +688,7 @@ END
     fi
 
     echo ::
-    echo :: Creating CA certificate chain file...
+    echo -e :: ${HEADLINE_COLOR}Creating CA certificate chain file...${NO_COLOR}
     echo ::
     # To create the CA certificate chain, concatenate the issuing CA and root
     # certificates together. This can be used to verify certificates signed by
@@ -704,7 +709,7 @@ END
     fi
 
     echo ::
-    echo :: Verifying the Issuing CA file against the Root CA certificate
+    echo -e :: ${HEADLINE_COLOR}Verifying the Issuing CA file against the Root CA certificate...${NO_COLOR}
     echo ::
     if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         CRL_CHECK_OPTION="-crl_check_all"
