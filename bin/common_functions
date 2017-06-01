@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# BooBoo Quick CA
+# Copyright (C) 2017, Bernd Stroessenreuther <booboo@gluga.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# 2017-06-01 booboo:
+# defining colors, functions, ... used by more than one of the
+# other scripts in this directory
+
+# .-- color definitions --------------------------------------------------.
+HEADLINE_COLOR='\033[1;34m'
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+NO_COLOR='\033[0m'
+
+#.
+function display_rc { # .--------------------------------------------
+    RC=$1
+    EXIT_AFTER_DISPLAY=$2
+
+    if [[ $RC -eq 0 ]]; then
+        echo -e :: ${GREEN}Good${NO_COLOR}
+    else
+        echo -e :: ${RED}Problem!${NO_COLOR}
+
+        if [[ $EXIT_AFTER_DISPLAY -ne 0 ]]; then
+            exit 1
+        fi
+    fi
+}
+#.
