@@ -24,6 +24,7 @@
 HEADLINE_COLOR='\033[1;34m'
 RED='\033[1;31m'
 GREEN='\033[1;32m'
+ORANGE='\033[0;33m'
 NO_COLOR='\033[0m'
 
 #.
@@ -32,9 +33,9 @@ function display_rc { # .--------------------------------------------
     EXIT_AFTER_DISPLAY=$2
 
     if [[ $RC -eq 0 ]]; then
-        echo -e :: ${GREEN}Good${NO_COLOR}
+        echo -e :: Result: ${GREEN}Good${NO_COLOR}
     else
-        echo -e :: ${RED}Problem!${NO_COLOR}
+        echo -e :: Result: ${RED}Problem!${NO_COLOR}
 
         if [[ $EXIT_AFTER_DISPLAY -ne 0 ]]; then
             exit 1

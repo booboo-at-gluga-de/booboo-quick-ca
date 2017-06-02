@@ -22,7 +22,7 @@
 # If you already have a CSR (created on the target machine - as recommended)
 # please use sign_customer_cert.sh
 
-function help {
+function help { # .-------------------------------------------------------
     echo
     echo "call using:"
     echo "$0 [-c|-s] -n <COMMON_NAME> [-a <SUBJECT_ALTERNATE_NAME>]+"
@@ -39,6 +39,7 @@ function help {
     echo "    <COMMON_NAME> is the COMMON_NAME (CN) of the certificate you want to create"
     echo
 }
+#.
 
 if [[ $EUID -eq 0 ]]; then
     echo
@@ -57,7 +58,7 @@ declare -a SUBJECT_ALTERNATE_NAMES
 
 source $BOOBOO_QUICK_CA_BASE/bin/common_functions
 
-# command line options
+# .-- command line options -----------------------------------------------
 while getopts ":scn:a:h" opt; do
     case $opt in
     n)
@@ -88,6 +89,7 @@ if [[ -z $CUSTOMER_CERT_CN ]]; then
     help
     exit 1
 fi
+#.
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
@@ -131,7 +133,12 @@ echo -e :: ${HEADLINE_COLOR}Creating Key...${NO_COLOR}
 echo ::
 
 umask 077
-openssl genrsa -aes256 -out $CUSTOMER_CERT_KEY_FILE $CUSTOMER_CERT_KEY_LENGTH
+RC=255
+while [[ $RC -ne 0 ]]; do
+    openssl genrsa -aes256 -out $CUSTOMER_CERT_KEY_FILE $CUSTOMER_CERT_KEY_LENGTH
+    RC=$?
+    [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+done
 chmod 400 $CUSTOMER_CERT_KEY_FILE
 
 echo ::
@@ -180,8 +187,13 @@ for SAN in ${SUBJECT_ALTERNATE_NAMES[@]}; do
     COUNTER=$(( $COUNTER + 1 ))
 done
 
-openssl req -config $TMP_OPENSSL_CNF_FILE \
-      -key $CUSTOMER_CERT_KEY_FILE -new -sha256 -out $CUSTOMER_CERT_CSR_FILE
+RC=255
+while [[ $RC -ne 0 ]]; do
+    openssl req -config $TMP_OPENSSL_CNF_FILE \
+          -key $CUSTOMER_CERT_KEY_FILE -new -sha256 -out $CUSTOMER_CERT_CSR_FILE
+    RC=$?
+    [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+done
 
 echo ::
 echo -e :: ${HEADLINE_COLOR}Creating certificate...${NO_COLOR}
@@ -191,9 +203,14 @@ echo ::
 # extension. If the certificate is going to be used for user authentication,
 # use the usr_cert extension.
 
-openssl ca -config $TMP_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
-      -days $CUSTOMER_CERT_LIFE_TIME -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE \
-      -out $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
+RC=255
+while [[ $RC -ne 0 ]]; do
+    openssl ca -config $TMP_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
+        -days $CUSTOMER_CERT_LIFE_TIME -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE \
+        -out $CUSTOMER_CERT_CERT_FILE_PEM
+    RC=$?
+    [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+done
 chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM
 
 # The $ISSUING_CA_INDEX_FILE  file should contain a line referring to this new certificate.
@@ -239,7 +256,8 @@ if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo ::
     echo -e :: ${HEADLINE_COLOR}Providing the certificate in DER format...${NO_COLOR}
     echo ::
-    openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER && echo :: OK
+    openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER
+    display_rc $? 0
     chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
 fi
 
@@ -249,6 +267,7 @@ if [ $CUSTOMER_CERT_CREATE_PKCS12 = "yes" -o $CUSTOMER_CERT_CREATE_JKS = "yes" ]
     echo ::
     openssl pkcs12 -export -out $CUSTOMER_CERT_PKCS12_FILE -inkey $CUSTOMER_CERT_KEY_FILE \
         -in $CUSTOMER_CERT_CERT_FILE_PEM -certfile $CA_CHAIN_FILE
+    display_rc $? 0
 fi
 
 if [[ $CUSTOMER_CERT_CREATE_JKS = "yes" ]]; then
@@ -271,6 +290,7 @@ if [[ $CUSTOMER_CERT_CREATE_JKS = "yes" ]]; then
 
         keytool -importkeystore -srckeystore $CUSTOMER_CERT_PKCS12_FILE -srcstoretype pkcs12 \
             -destkeystore $CUSTOMER_CERT_JKS_FILE -deststoretype jks
+        display_rc $? 0
     else
         echo :: Sorry, no keytool binary found in the PATH, skipping creation of jks
     fi
@@ -282,22 +302,27 @@ echo -e :: ${HEADLINE_COLOR}-------------${NO_COLOR}
 echo ::
 echo :: The private key in PEM format:
 ls $CUSTOMER_CERT_KEY_FILE
+display_rc $? 0
 echo ::
 echo :: The certificate in PEM format:
 ls $CUSTOMER_CERT_CERT_FILE_PEM
+display_rc $? 0
 echo ::
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo :: The certificate in DER format \(as an alternative\):
     ls $CUSTOMER_CERT_CERT_FILE_DER
+    display_rc $? 0
     echo ::
 fi
 if [ $CUSTOMER_CERT_CREATE_PKCS12 = "yes" -o $CUSTOMER_CERT_CREATE_JKS = "yes" ]; then
     echo :: A keystore containing the private key, the certificate and needed CA in PKCS12 format:
     ls $CUSTOMER_CERT_PKCS12_FILE
+    display_rc $? 0
 fi
 
 if [[ $HAVE_KEYTOOL -eq 0 ]]; then
     echo ::
     echo :: A keystore containing the private key, the certificate and needed CA in Java Keystore format:
     ls $CUSTOMER_CERT_JKS_FILE
+    display_rc $? 0
 fi
