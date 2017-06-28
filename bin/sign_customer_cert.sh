@@ -20,7 +20,7 @@
 # This script signs a CSR (Certificate Signing Request) for a CA customer
 # and creates a customer certifcate.
 
-function help {
+function help { # .-------------------------------------------------------
     echo
     echo "call using:"
     echo "$0 [-c|-s] -f <CSR_FILE>"
@@ -34,6 +34,7 @@ function help {
     echo "    -h         display this help screen and exit"
     echo
 }
+#.
 
 if [[ $EUID -eq 0 ]]; then
     echo
@@ -51,7 +52,7 @@ CUSTOMER_CERT_TYPE="server_cert"
 
 source $BOOBOO_QUICK_CA_BASE/bin/common_functions
 
-# command line options
+# .-- command line options -----------------------------------------------
 while getopts ":f:csh" opt; do
     case $opt in
     f)
@@ -86,6 +87,7 @@ if [[ ! -f $CUSTOMER_CERT_CSR_FILE_COMMANDLINE ]]; then
     help
     exit 1
 fi
+#.
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
@@ -116,7 +118,7 @@ source $QUICK_CA_CFG_FILE
 echo ::
 echo -e :: ${HEADLINE_COLOR}Checking for already existing files...${NO_COLOR}
 echo ::
-for FILE in $CUSTOMER_CERT_CERT_FILE_PEM $CUSTOMER_CERT_CERT_FILE_DER $CUSTOMER_CERT_PKCS12_FILE $CUSTOMER_CERT_JKS_FILE; do
+for FILE in $CUSTOMER_CERT_CERT_FILE_PEM $CUSTOMER_CERT_CERT_FILE_DER; do
     if [[ -f $FILE ]]; then
         echo :: $FILE already exists
         EXISTING_CONFIG_FILES=$(($EXISTING_CONFIG_FILES+1))
@@ -130,7 +132,8 @@ if [[ $EXISTING_CONFIG_FILES -gt 0 ]]; then
     echo ::
     exit 1
 else
-    echo :: OK
+    echo :: There are none.
+    display_rc 0 0
 fi
 
 echo ::
@@ -159,9 +162,14 @@ for SAN in ${SUBJECT_ALTERNATE_NAMES[@]}; do
     COUNTER=$(( $COUNTER + 1 ))
 done
 
-openssl ca -config $TMP_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
-      -days $CUSTOMER_CERT_LIFE_TIME -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE_COMMANDLINE \
-      -out $CUSTOMER_CERT_CERT_FILE_PEM || exit 1
+RC=255
+while [[ $RC -ne 0 ]]; do
+    openssl ca -config $TMP_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
+        -days $CUSTOMER_CERT_LIFE_TIME -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE_COMMANDLINE \
+        -out $CUSTOMER_CERT_CERT_FILE_PEM
+    RC=$?
+    [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+done
 chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM
 
 rm $TMP_OPENSSL_CNF_FILE
@@ -206,42 +214,12 @@ if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo ::
     echo -e :: ${HEADLINE_COLOR}Providing the certificate in DER format...${NO_COLOR}
     echo ::
-    openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER && echo :: OK
+    openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER
+    display_rc $? 0
     chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
 fi
 
-if [ $CUSTOMER_CERT_CREATE_PKCS12 = "yes" -o $CUSTOMER_CERT_CREATE_JKS = "yes" ]; then
-    echo ::
-    echo -e :: ${HEADLINE_COLOR}Providing a complete keystore in PKCS12 format...${NO_COLOR}
-    echo ::
-    openssl pkcs12 -export -out $CUSTOMER_CERT_PKCS12_FILE -inkey $CUSTOMER_CERT_KEY_FILE \
-        -in $CUSTOMER_CERT_CERT_FILE_PEM -certfile $CA_CHAIN_FILE
-fi
-
-if [[ $CUSTOMER_CERT_CREATE_JKS = "yes" ]]; then
-    echo ::
-    echo -e :: ${HEADLINE_COLOR}Providing a complete keystore in Java Keystore \(jks\) format...${NO_COLOR}
-    echo ::
-    echo :: As \"destination keystore password\" please give the password you want to
-    echo :: set for the jks file.
-    echo :: As \"source keystore password\" you need to give the password you just did
-    echo :: set for the PKCS12 keystore \(we just convert this one now\)
-
-    type keytool >/dev/null 2>/dev/null
-    HAVE_KEYTOOL=$?
-    if [[ $HAVE_KEYTOOL -eq 0 ]]; then
-        # create a complete keystore (key, Cert, issuing CA)
-        # according to https://www.tbs-certificates.co.uk/FAQ/en/626.html
-        # keytool -importkeystore -srckeystore [MY_FILE.p12] -srcstoretype pkcs12
-        #  -srcalias [ALIAS_SRC] -destkeystore [MY_KEYSTORE.jks]
-        #  -deststoretype jks -deststorepass [PASSWORD_JKS] -destalias [ALIAS_DEST]
-
-        keytool -importkeystore -srckeystore $CUSTOMER_CERT_PKCS12_FILE -srcstoretype pkcs12 \
-            -destkeystore $CUSTOMER_CERT_JKS_FILE -deststoretype jks
-    else
-        echo :: Sorry, no keytool binary found in the PATH, skipping creation of jks
-    fi
-fi
+# pkcs12 and jks can not be generated: For both we would need the private key of the customer cert.
 
 echo ::
 echo -e :: ${HEADLINE_COLOR}What you got:${NO_COLOR}
@@ -249,19 +227,12 @@ echo -e :: ${HEADLINE_COLOR}-------------${NO_COLOR}
 echo ::
 echo :: The certificate in PEM format:
 ls $CUSTOMER_CERT_CERT_FILE_PEM
+display_rc $? 0
 echo ::
+
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo :: The certificate in DER format \(as an alternative\):
     ls $CUSTOMER_CERT_CERT_FILE_DER
+    display_rc $? 0
     echo ::
-fi
-if [ $CUSTOMER_CERT_CREATE_PKCS12 = "yes" -o $CUSTOMER_CERT_CREATE_JKS = "yes" ]; then
-    echo :: A keystore containing the private key, the certificate and needed CA in PKCS12 format:
-    ls $CUSTOMER_CERT_PKCS12_FILE
-fi
-
-if [[ $HAVE_KEYTOOL -eq 0 ]]; then
-    echo ::
-    echo :: A keystore containing the private key, the certificate and needed CA in Java Keystore format:
-    ls $CUSTOMER_CERT_JKS_FILE
 fi

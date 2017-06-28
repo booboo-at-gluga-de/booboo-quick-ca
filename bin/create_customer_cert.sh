@@ -125,7 +125,8 @@ if [[ $EXISTING_CONFIG_FILES -gt 0 ]]; then
     echo ::
     exit 1
 else
-    echo :: OK
+    echo :: There are none.
+    display_rc 0 0
 fi
 
 echo ::

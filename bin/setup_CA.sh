@@ -438,15 +438,27 @@ END
 echo ::
 echo -e :: ${HEADLINE_COLOR}Creating Key for Root CA...${NO_COLOR}
 echo ::
-openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE $ROOT_CA_KEY_LENGTH
+
+RC=255
+while [[ $RC -ne 0 ]]; do
+    openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE $ROOT_CA_KEY_LENGTH
+    RC=$?
+    [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+done
 
 chmod 400 $ROOT_CA_KEY_FILE
 
 echo ::
 echo -e :: ${HEADLINE_COLOR}Creating Root CA certificate...${NO_COLOR}
 echo ::
-openssl req -config $ROOT_CA_OPENSSL_CNF_FILE -key $ROOT_CA_KEY_FILE \
-      -new -x509 -days $ROOT_CA_LIFE_TIME -sha256 -extensions v3_ca -out $ROOT_CA_CERT_FILE
+
+RC=255
+while [[ $RC -ne 0 ]]; do
+    openssl req -config $ROOT_CA_OPENSSL_CNF_FILE -key $ROOT_CA_KEY_FILE \
+          -new -x509 -days $ROOT_CA_LIFE_TIME -sha256 -extensions v3_ca -out $ROOT_CA_CERT_FILE
+    RC=$?
+    [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+done
 
 chmod 444 $ROOT_CA_CERT_FILE
 
@@ -463,7 +475,14 @@ if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
     echo ::
     echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Root CA...${NO_COLOR}
     echo ::
-    openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
+
+    RC=255
+    while [[ $RC -ne 0 ]]; do
+        openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
+        RC=$?
+        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+    done
+
     echo :: You now have:
     openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
     chmod 644 $ROOT_CA_CRL_FILE
@@ -634,7 +653,13 @@ END
     echo ::
     echo -e :: ${HEADLINE_COLOR}Creating Key for Issuing CA...${NO_COLOR}
     echo ::
-    openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
+
+    RC=255
+    while [[ $RC -ne 0 ]]; do
+        openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
+        RC=$?
+        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+    done
 
     chmod 400 $ISSUING_CA_KEY_FILE_FULL
     logical_symlink $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
@@ -645,8 +670,13 @@ END
 
     # Use the issuing CA key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
 
-    openssl req -config $ISSUING_CA_OPENSSL_CNF_FILE -new -sha256 \
-          -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
+    RC=255
+    while [[ $RC -ne 0 ]]; do
+        openssl req -config $ISSUING_CA_OPENSSL_CNF_FILE -new -sha256 \
+              -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
+        RC=$?
+        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+    done
 
     echo ::
     echo -e :: ${HEADLINE_COLOR}Creating Issuing CA certificate...${NO_COLOR}
@@ -656,9 +686,14 @@ END
 
     # This time, specify the root CA configuration file
 
-    openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_issuing_ca \
-          -days $ISSUING_CA_LIFE_TIME -notext -md sha256 \
-          -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
+    RC=255
+    while [[ $RC -ne 0 ]]; do
+        openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_issuing_ca \
+              -days $ISSUING_CA_LIFE_TIME -notext -md sha256 \
+              -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
+        RC=$?
+        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+    done
 
     chmod 444 $ISSUING_CA_CERT_FILE_FULL
     logical_symlink $ISSUING_CA_CERT_FILE_FULL $ISSUING_CA_CERT_FILE
@@ -677,7 +712,14 @@ END
         echo ::
         echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Issuing CA...${NO_COLOR}
         echo ::
-        openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
+
+        RC=255
+        while [[ $RC -ne 0 ]]; do
+            openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
+            RC=$?
+            [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        done
+
         echo :: You now have:
         openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
         chmod 644 $ISSUING_CA_CRL_FILE
