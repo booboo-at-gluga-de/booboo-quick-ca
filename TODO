@@ -2,22 +2,11 @@
  * add a script for revoking certificates
  * add a script for just updating the CRLs
  * in create_customer_cert.sh and sign_customer_cert.sh: if CRL is elder than 14 days, remind user to renew
- * create CRLs only if crlDistributionPoints is set
- * put crlDistributionPoints into certificates if configured
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
  * put the openssl commands for usage on the target machine into README
  * create a stable branch, documentation on how to use it in README
- * add CRL URLs in certificates
-    see e. g. https://jamielinux.com/docs/openssl-certificate-authority/certificate-revocation-lists.html
-        [ server_cert ]
-        # ... snipped ...
-        crlDistributionPoints = URI:http://example.com/intermediate.crl.pem
-
-        openssl ca -config intermediate/openssl.cnf \
-              -gencrl -out intermediate/crl/intermediate.crl.pem
  * write tests
     * server: openssl s_server -port 8443 -cert customer_certs/<hostname>.<date>.cert.pem -key customer_private_keys/<hostname>.<date>.key.pem
     * client: openssl s_client -verify_return_error -verify 3 -CAfile ca_certs/ca-chain.cert.pem -connect <hostname>:8443
           or: curl --cacert ./ca_certs/ca-chain.cert.pem https://verleihnix.gallien.stroessenreuther.net:8443/
- * if user mistypes the key password: catch the error and do something helpful
-   e. g. retry
+ * script for simply showing filetypes csr, pem, der, jks, pkcs12, ...
