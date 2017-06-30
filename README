@@ -31,12 +31,12 @@ most of the time.
 In any case: Create a separate user for your CA.
 Switch to this user and e. g. in the home directory do a
 
-   git clone ~/git/booboo-quick-ca.git
+   git clone https://github.com/booboo-at-gluga-de/booboo-quick-ca.git
 
 if we assume you want to live your CA in ~/booboo-quick-ca
 If you like some other directory, use
 
-   git clone ~/git/booboo-quick-ca.git ~/path/to/ca-dir
+   git clone https://github.com/booboo-at-gluga-de/booboo-quick-ca.git ~/path/to/ca-dir
 
 
 Setup your CA
