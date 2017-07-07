@@ -90,7 +90,9 @@ For using this way:
 
    * create the key pair and the CSR directly on the target system
      (the system where you want to use the certificate) e. g. by using
-     openssl commands.
+     openssl commands like
+         openssl genrsa -aes256 -out <CERT_KEY_FILE> 2048
+         openssl req -key <CERT_KEY_FILE> -new -sha256 -out <CSR_FILE>
    * send the CSR to the CA
    * use the sign_customer_cert.sh script there to create the certificate
 
