@@ -101,6 +101,22 @@ Switch to your CA user, change to your CA directory and use
 to display the help screen explaining all command line options.
 
 
+Display csr, pem, der, jks or pkcs12 files
+------------------------------------------
+
+To display the content of different, SSL/TLS related file types just use
+
+    bin/show_ssl_file.sh <FILE> [<FILE>]+
+
+You do not need to care about, which type (csr, pem, der, jks or pkcs12)
+the files are: show_ssl_file.sh tries to determine the type and display
+the content in an appropriate way.
+
+For detailed info see
+
+    bin/show_ssl_file.sh --help
+
+
 Update BooBoo Quick CA to a new version
 ---------------------------------------
 
