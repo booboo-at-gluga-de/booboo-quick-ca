@@ -471,22 +471,7 @@ echo ::
 echo -n ":: Please verify your Root CA and press ENTER if OK "
 read TMP
 
-if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
-    echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Root CA...${NO_COLOR}
-    echo ::
-
-    RC=255
-    while [[ $RC -ne 0 ]]; do
-        openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
-        RC=$?
-        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
-    done
-
-    echo :: You now have:
-    openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
-    chmod 644 $ROOT_CA_CRL_FILE
-fi
+create_crl_root_ca
 
 echo ::
 echo -e :: ${HEADLINE_COLOR}Setting up your new issuing CA${NO_COLOR}
@@ -708,22 +693,7 @@ END
     echo -n ":: Please verify your Issuing CA and press ENTER if OK "
     read TMP
 
-    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
-        echo ::
-        echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Issuing CA...${NO_COLOR}
-        echo ::
-
-        RC=255
-        while [[ $RC -ne 0 ]]; do
-            openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
-            RC=$?
-            [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
-        done
-
-        echo :: You now have:
-        openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
-        chmod 644 $ISSUING_CA_CRL_FILE
-    fi
+    create_crl_issuing_ca
 
     echo ::
     echo -e :: ${HEADLINE_COLOR}Creating CA certificate chain file...${NO_COLOR}

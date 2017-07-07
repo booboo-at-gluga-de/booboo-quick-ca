@@ -28,7 +28,7 @@ ORANGE='\033[0;33m'
 NO_COLOR='\033[0m'
 
 #.
-function display_rc { # .--------------------------------------------
+function display_rc { # .-------------------------------------------------.
     RC=$1
     EXIT_AFTER_DISPLAY=$2
 
@@ -42,4 +42,57 @@ function display_rc { # .--------------------------------------------
         fi
     fi
 }
+
+#.
+function create_crl_root_ca { # .-----------------------------------------.
+    if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+        echo ::
+        echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Root CA...${NO_COLOR}
+        echo ::
+
+        RC=255
+        while [[ $RC -ne 0 ]]; do
+            openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
+            RC=$?
+            [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        done
+
+        echo :: You now have:
+        openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
+        chmod 644 $ROOT_CA_CRL_FILE
+    else
+        echo ::
+        echo -e :: ${HEADLINE_COLOR}No Certificate Revocation List \(CRL\) will be created for the Root CA${NO_COLOR}
+        echo :: because ROOT_CA_CRL_DISTRIBUTION_POINTS is not set in
+        echo :: $QUICK_CA_CFG_FILE
+        echo ::
+    fi
+}
+
+#.
+function create_crl_issuing_ca { # .-----------------------------------------.
+    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+        echo ::
+        echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Issuing CA...${NO_COLOR}
+        echo ::
+
+        RC=255
+        while [[ $RC -ne 0 ]]; do
+            openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
+            RC=$?
+            [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        done
+
+        echo :: You now have:
+        openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
+        chmod 644 $ISSUING_CA_CRL_FILE
+    else
+        echo ::
+        echo -e :: ${HEADLINE_COLOR}No Certificate Revocation List \(CRL\) will be created for the Issuing CA${NO_COLOR}
+        echo :: because ISSUING_CA_CRL_DISTRIBUTION_POINTS is not set in
+        echo :: $QUICK_CA_CFG_FILE
+        echo ::
+    fi
+}
+
 #.

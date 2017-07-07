@@ -1,4 +1,3 @@
- * add a script for renewing issuing ca
  * add a script for revoking certificates
  * add a script for just updating the CRLs
  * in create_customer_cert.sh and sign_customer_cert.sh: if CRL is elder than 14 days, remind user to renew
