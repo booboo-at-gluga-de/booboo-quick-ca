@@ -236,3 +236,7 @@ if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     display_rc $? 0
     echo ::
 fi
+
+# remind user to renew CRL certificates if needed
+check_crl_validity "root_ca" -q
+check_crl_validity "issuing_ca" -q

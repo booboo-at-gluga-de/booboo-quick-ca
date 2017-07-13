@@ -49,7 +49,7 @@ BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 DISPLAY_HEADERS=1
 source $BOOBOO_QUICK_CA_BASE/bin/common_functions
 
-if [[ -z "$1" ]] || [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
+if [[ -z "$1" ]] || [[ "$1" = "-h" ]]; then
     help
     exit 0
 fi

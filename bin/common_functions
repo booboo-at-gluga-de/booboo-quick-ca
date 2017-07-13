@@ -71,6 +71,10 @@ function create_crl_root_ca { # .-----------------------------------------.
 
 #.
 function create_crl_issuing_ca { # .-----------------------------------------.
+    if [[ $SEPARATE_ISSUING_CA != "yes" ]]; then
+        return 0
+    fi
+
     if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         echo ::
         echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Issuing CA...${NO_COLOR}
@@ -92,6 +96,59 @@ function create_crl_issuing_ca { # .-----------------------------------------.
         echo :: because ISSUING_CA_CRL_DISTRIBUTION_POINTS is not set in
         echo :: $QUICK_CA_CFG_FILE
         echo ::
+    fi
+}
+
+#.
+function check_crl_validity { # .-----------------------------------------.
+    # 1st param needs to specify, which CA's CRL to check
+    if [[ $1 = "root_ca" ]]; then
+        CRL_NAME="Root CA"
+        CRL_DISTRIBUTION_POINTS=$ROOT_CA_CRL_DISTRIBUTION_POINTS
+        CRL_FILE=$ROOT_CA_CRL_FILE
+    elif [[ $1 = "issuing_ca" ]]; then
+        if [[ $SEPARATE_ISSUING_CA != "yes" ]]; then
+            return 0
+        fi
+        CRL_NAME="Issuing CA"
+        CRL_DISTRIBUTION_POINTS=$ISSUING_CA_CRL_DISTRIBUTION_POINTS
+        CRL_FILE=$ISSUING_CA_CRL_FILE
+    else
+        echo -e :: ${RED}Unknown parameter passed to function check_crl_validity: $1${NO_COLOR}
+        return 1
+    fi
+
+    # 2nd param may be "-q" for quiet
+    QUIET=0
+    if [[ $2 = "-q" ]]; then
+        QUIET=1
+    fi
+
+    NOW=$(date +%s)
+
+    # check the given CRL
+    if [[ ! -z "$CRL_DISTRIBUTION_POINTS" ]]; then
+        echo ::
+        echo -e :: ${HEADLINE_COLOR}Checking validity priod of the CRL for the $CRL_NAME...${NO_COLOR}
+        VALID_UNTIL=$(openssl crl -text -noout -in $CRL_FILE | grep "Next Update:" | sed -e "s/.*Next Update: //")
+        VALID_UNTIL_EPOCH=$(date --date="$VALID_UNTIL" +%s)
+        REMAINING_VALIDITY=$(($VALID_UNTIL_EPOCH - $NOW))
+
+        if [[ $REMAINING_VALIDITY -lt 0 ]]; then
+            echo -e :: ${RED}CRL expired! Was valid until $VALID_UNTIL${NO_COLOR}
+            echo -e :: ${RED}Please run renew_crl.sh immediatelly!${NO_COLOR}
+        elif [[ $REMAINING_VALIDITY -lt 1209600 ]]; then      # less than 14 days
+            echo -e :: ${ORANGE}CRL will expire soon! Valid until $VALID_UNTIL${NO_COLOR}
+            echo -e :: ${ORANGE}Please run renew_crl.sh soon!${NO_COLOR}
+        else
+            echo -e :: ${GREEN}CRL ok! Valid until $VALID_UNTIL${NO_COLOR}
+        fi
+    else
+        if [[ $QUIET -eq 0 ]]; then
+            echo ::
+            echo -e :: ${HEADLINE_COLOR}You do not use a CRL for the $CRL_NAME${NO_COLOR}
+            echo -e :: ${GREEN}Nothing to check!${NO_COLOR}
+        fi
     fi
 }
 

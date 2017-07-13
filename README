@@ -103,6 +103,28 @@ Switch to your CA user, change to your CA directory and use
 to display the help screen explaining all command line options.
 
 
+Renew CRL(s)
+------------
+
+Only if you decided to use Certificate Revocation List(s) - CRL(s) by setting
+ROOT_CA_CRL_DISTRIBUTION_POINTS and maybe ISSUING_CA_CRL_DISTRIBUTION_POINTS
+in booboo-quick-ca.cfg to non empty value(s) you need to renew your CRL(s)
+regularly, because they have a limited validity period (by default: 30 days).
+
+To renewy your CRL(s) switch to your CA user, change to your CA directory and
+use
+
+   bin/renew_crl.sh
+
+To check validity period only - without renewing the CRL(s) - use
+
+   bin/renew_crl.sh -c
+
+For help use
+
+   bin/renew_crl.sh -h
+
+
 Display csr, pem, der, jks or pkcs12 files
 ------------------------------------------
 
@@ -116,7 +138,7 @@ the content in an appropriate way.
 
 For detailed info see
 
-    bin/show_ssl_file.sh --help
+    bin/show_ssl_file.sh -h
 
 
 Update BooBoo Quick CA to a new version

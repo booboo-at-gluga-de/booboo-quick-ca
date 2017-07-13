@@ -1,6 +1,5 @@
  * add a script for revoking certificates
- * add a script for just updating the CRLs
- * in create_customer_cert.sh and sign_customer_cert.sh: if CRL is elder than 14 days, remind user to renew
+ * add a configuration option for max age of certificates in cfg
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
  * create a stable branch, documentation on how to use it in README
  * write tests

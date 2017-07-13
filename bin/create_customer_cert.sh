@@ -327,3 +327,7 @@ if [[ $HAVE_KEYTOOL -eq 0 ]]; then
     ls $CUSTOMER_CERT_JKS_FILE
     display_rc $? 0
 fi
+
+# remind user to renew CRL certificates if needed
+check_crl_validity "root_ca" -q
+check_crl_validity "issuing_ca" -q
