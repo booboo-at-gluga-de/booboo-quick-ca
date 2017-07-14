@@ -20,27 +20,6 @@
 # this script initializes the CA with all needed config files
 # and initially creates the CA (root) certificate
 
-function logical_symlink { # .--------------------------------------------
-    LINK_DEST=$1
-    LINK_SOURCE=$2
-
-    BASENAME_LINK_DEST=$(basename $LINK_DEST)
-    BASENAME_LINK_SOURCE=$(basename $LINK_SOURCE)
-    DIRNAME_LINK_DEST=$(dirname $LINK_DEST)
-    DIRNAME_LINK_SOURCE=$(dirname $LINK_SOURCE)
-
-    if [[ $DIRNAME_LINK_DEST = $DIRNAME_LINK_SOURCE ]]; then
-        echo ":: in $DIRNAME_LINK_DEST symlinking $BASENAME_LINK_SOURCE -> $BASENAME_LINK_DEST"
-        cd $DIRNAME_LINK_DEST
-        ln -s $BASENAME_LINK_DEST $BASENAME_LINK_SOURCE
-        cd - >/dev/null
-    else
-        echo ":: symlinking $LINK_SOURCE -> $LINK_DEST"
-        ln -s $LINK_DEST $LINK_SOURCE
-    fi
-}
-#.
-
 if [[ $EUID -eq 0 ]]; then
     echo
     echo You should not run your CA as root user.
@@ -706,15 +685,6 @@ END
     chmod 444 $CA_CHAIN_FILE_FULL
     logical_symlink $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
     echo :: CA chain file is: $CA_CHAIN_FILE_FULL
-
-    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
-        cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE $ISSUING_CA_CRL_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE_FULL
-        chmod 444 $CA_CHAIN_PLUS_CRL_FILE_FULL
-        logical_symlink $CA_CHAIN_PLUS_CRL_FILE_FULL $CA_CHAIN_PLUS_CRL_FILE
-        echo :: CA chain file including CRLs is: $CA_CHAIN_PLUS_CRL_FILE_FULL
-    else
-        logical_symlink $CA_CHAIN_FILE $CA_CHAIN_PLUS_CRL_FILE
-    fi
 
     echo ::
     echo -e :: ${HEADLINE_COLOR}Verifying the Issuing CA file against the Root CA certificate...${NO_COLOR}

@@ -28,6 +28,31 @@ ORANGE='\033[0;33m'
 NO_COLOR='\033[0m'
 
 #.
+function logical_symlink { # .--------------------------------------------
+    LINK_DEST=$1
+    LINK_SOURCE=$2
+
+    BASENAME_LINK_DEST=$(basename $LINK_DEST)
+    BASENAME_LINK_SOURCE=$(basename $LINK_SOURCE)
+    DIRNAME_LINK_DEST=$(dirname $LINK_DEST)
+    DIRNAME_LINK_SOURCE=$(dirname $LINK_SOURCE)
+
+    if [[ -L $LINK_SOURCE ]]; then
+        rm -f $LINK_SOURCE
+    fi
+
+    if [[ $DIRNAME_LINK_DEST = $DIRNAME_LINK_SOURCE ]]; then
+        echo ":: in $DIRNAME_LINK_DEST symlinking $BASENAME_LINK_SOURCE -> $BASENAME_LINK_DEST"
+        cd $DIRNAME_LINK_DEST
+        ln -s $BASENAME_LINK_DEST $BASENAME_LINK_SOURCE
+        cd - >/dev/null
+    else
+        echo ":: symlinking $LINK_SOURCE -> $LINK_DEST"
+        ln -s $LINK_DEST $LINK_SOURCE
+    fi
+}
+
+#.
 function display_rc { # .-------------------------------------------------.
     RC=$1
     EXIT_AFTER_DISPLAY=$2
@@ -87,6 +112,14 @@ function create_crl_issuing_ca { # .-----------------------------------------.
             [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
         done
 
+        chmod 644 $CA_CHAIN_PLUS_CRL_FILE_FULL
+        cat $ISSUING_CA_CERT_FILE $ROOT_CA_CERT_FILE $ISSUING_CA_CRL_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE_FULL
+        chmod 444 $CA_CHAIN_PLUS_CRL_FILE_FULL
+        logical_symlink $CA_CHAIN_PLUS_CRL_FILE_FULL $CA_CHAIN_PLUS_CRL_FILE
+        echo ::
+        echo :: Created CA chain file including CRLs: $CA_CHAIN_PLUS_CRL_FILE_FULL
+        echo ::
+
         echo :: You now have:
         openssl crl  -text -noout -in $ISSUING_CA_CRL_FILE
         chmod 644 $ISSUING_CA_CRL_FILE
@@ -96,6 +129,8 @@ function create_crl_issuing_ca { # .-----------------------------------------.
         echo :: because ISSUING_CA_CRL_DISTRIBUTION_POINTS is not set in
         echo :: $QUICK_CA_CFG_FILE
         echo ::
+
+        logical_symlink $CA_CHAIN_FILE $CA_CHAIN_PLUS_CRL_FILE
     fi
 }
 
@@ -130,18 +165,22 @@ function check_crl_validity { # .-----------------------------------------.
     if [[ ! -z "$CRL_DISTRIBUTION_POINTS" ]]; then
         echo ::
         echo -e :: ${HEADLINE_COLOR}Checking validity priod of the CRL for the $CRL_NAME...${NO_COLOR}
-        VALID_UNTIL=$(openssl crl -text -noout -in $CRL_FILE | grep "Next Update:" | sed -e "s/.*Next Update: //")
-        VALID_UNTIL_EPOCH=$(date --date="$VALID_UNTIL" +%s)
-        REMAINING_VALIDITY=$(($VALID_UNTIL_EPOCH - $NOW))
-
-        if [[ $REMAINING_VALIDITY -lt 0 ]]; then
-            echo -e :: ${RED}CRL expired! Was valid until $VALID_UNTIL${NO_COLOR}
-            echo -e :: ${RED}Please run renew_crl.sh immediatelly!${NO_COLOR}
-        elif [[ $REMAINING_VALIDITY -lt 1209600 ]]; then      # less than 14 days
-            echo -e :: ${ORANGE}CRL will expire soon! Valid until $VALID_UNTIL${NO_COLOR}
-            echo -e :: ${ORANGE}Please run renew_crl.sh soon!${NO_COLOR}
+        if [[ ! -f $CRL_FILE ]]; then
+            echo -e :: ${RED}Error: File $CRL_FILE does not exist!${NO_COLOR}
         else
-            echo -e :: ${GREEN}CRL ok! Valid until $VALID_UNTIL${NO_COLOR}
+            VALID_UNTIL=$(openssl crl -text -noout -in $CRL_FILE | grep "Next Update:" | sed -e "s/.*Next Update: //")
+            VALID_UNTIL_EPOCH=$(date --date="$VALID_UNTIL" +%s)
+            REMAINING_VALIDITY=$(($VALID_UNTIL_EPOCH - $NOW))
+
+            if [[ $REMAINING_VALIDITY -lt 0 ]]; then
+                echo -e :: ${RED}CRL expired! Was valid until $VALID_UNTIL${NO_COLOR}
+                echo -e :: ${RED}Please run renew_crl.sh immediatelly!${NO_COLOR}
+            elif [[ $REMAINING_VALIDITY -lt 1209600 ]]; then      # less than 14 days
+                echo -e :: ${ORANGE}CRL will expire soon! Valid until $VALID_UNTIL${NO_COLOR}
+                echo -e :: ${ORANGE}Please run renew_crl.sh soon!${NO_COLOR}
+            else
+                echo -e :: ${GREEN}CRL ok! Valid until $VALID_UNTIL${NO_COLOR}
+            fi
         fi
     else
         if [[ $QUIET -eq 0 ]]; then

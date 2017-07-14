@@ -6,3 +6,4 @@
     * server: openssl s_server -port 8443 -cert customer_certs/<hostname>.<date>.cert.pem -key customer_private_keys/<hostname>.<date>.key.pem
     * client: openssl s_client -verify_return_error -verify 3 -CAfile ca_certs/ca-chain.cert.pem -connect <hostname>:8443
           or: curl --cacert ./ca_certs/ca-chain.cert.pem https://verleihnix.gallien.stroessenreuther.net:8443/
+ * show_ssl_file.sh: if handling multi-part pem files like ca_certs/ca_chain_plus_crl.cert.pem: display contents of all parts
