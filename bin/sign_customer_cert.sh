@@ -36,14 +36,6 @@ function help { # .-------------------------------------------------------
 }
 #.
 
-if [[ $EUID -eq 0 ]]; then
-    echo
-    echo You should not run your CA as root user.
-    echo Better create a separate unprivileged user account especially for your CA.
-    echo
-    exit 1
-fi
-
 BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
@@ -51,6 +43,7 @@ HAVE_KEYTOOL=1
 CUSTOMER_CERT_TYPE="server_cert"
 
 source $BOOBOO_QUICK_CA_BASE/bin/common_functions
+do_not_run_as_root
 
 # .-- command line options -----------------------------------------------
 while getopts ":f:csh" opt; do

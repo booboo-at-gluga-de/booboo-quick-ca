@@ -20,7 +20,7 @@
 # defining colors, functions, ... used by more than one of the
 # other scripts in this directory
 
-# .-- color definitions --------------------------------------------------.
+# .-- color definitions ----------------------------------------------------.
 HEADLINE_COLOR='\033[1;34m'
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -28,7 +28,18 @@ ORANGE='\033[0;33m'
 NO_COLOR='\033[0m'
 
 #.
-function logical_symlink { # .--------------------------------------------
+function do_not_run_as_root { # .------------------------------------------.
+    if [[ $EUID -eq 0 ]]; then
+        echo
+        echo You should not run your CA as root user.
+        echo Better create a separate unprivileged user account especially for your CA.
+        echo
+        exit 1
+    fi
+}
+
+#.
+function logical_symlink { # .---------------------------------------------.
     LINK_DEST=$1
     LINK_SOURCE=$2
 
@@ -53,7 +64,7 @@ function logical_symlink { # .--------------------------------------------
 }
 
 #.
-function display_rc { # .-------------------------------------------------.
+function display_rc { # .--------------------------------------------------.
     RC=$1
     EXIT_AFTER_DISPLAY=$2
 
@@ -69,7 +80,7 @@ function display_rc { # .-------------------------------------------------.
 }
 
 #.
-function create_crl_root_ca { # .-----------------------------------------.
+function create_crl_root_ca { # .------------------------------------------.
     if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         echo ::
         echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Root CA...${NO_COLOR}
@@ -95,7 +106,7 @@ function create_crl_root_ca { # .-----------------------------------------.
 }
 
 #.
-function create_crl_issuing_ca { # .-----------------------------------------.
+function create_crl_issuing_ca { # .---------------------------------------.
     if [[ $SEPARATE_ISSUING_CA != "yes" ]]; then
         return 0
     fi
@@ -135,7 +146,7 @@ function create_crl_issuing_ca { # .-----------------------------------------.
 }
 
 #.
-function check_crl_validity { # .-----------------------------------------.
+function check_crl_validity { # .------------------------------------------.
     # 1st param needs to specify, which CA's CRL to check
     if [[ $1 = "root_ca" ]]; then
         CRL_NAME="Root CA"

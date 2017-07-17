@@ -20,19 +20,13 @@
 # this script initializes the CA with all needed config files
 # and initially creates the CA (root) certificate
 
-if [[ $EUID -eq 0 ]]; then
-    echo
-    echo You should not run your CA as root user.
-    echo Better create a separate unprivileged user account especially for your CA.
-    echo
-    exit 1
-fi
-
 BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
 
 source $BOOBOO_QUICK_CA_BASE/bin/common_functions
+do_not_run_as_root
+
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 fi
