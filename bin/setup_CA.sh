@@ -169,6 +169,13 @@ ROOT_CA_LIFE_TIME=3653
 ISSUING_CA_LIFE_TIME=1827
 CUSTOMER_CERT_LIFE_TIME=365
 
+# How long should your Certificate Revocation Lists (CRLs) be valid?
+# (in days)
+# Only take effect if you set ROOT_CA_CRL_DISTRIBUTION_POINTS and/or
+# ISSUING_CA_CRL_DISTRIBUTION_POINTS (see below) to non empty values.
+
+CRL_LIFE_TIME=30
+
 ###########################################################################
 # Output formats for customer certificates
 ###########################################################################
@@ -290,7 +297,7 @@ certificate       = $ROOT_CA_CERT_FILE
 crlnumber         = $ROOT_CA_CRL_NUMBER_FILE
 crl               = $ROOT_CA_CRL_PEM_FILE
 crl_extensions    = crl_ext
-default_crl_days  = 30
+default_crl_days  = $CRL_LIFE_TIME
 
 # SHA-1 is deprecated, so use SHA-2 instead.
 default_md        = sha256
@@ -490,7 +497,7 @@ certificate       = $ISSUING_CA_CERT_FILE
 crlnumber         = $ISSUING_CA_CRL_NUMBER_FILE
 crl               = $ISSUING_CA_CRL_PEM_FILE
 crl_extensions    = crl_ext
-default_crl_days  = 30
+default_crl_days  = $CRL_LIFE_TIME
 
 # SHA-1 is deprecated, so use SHA-2 instead.
 default_md        = sha256

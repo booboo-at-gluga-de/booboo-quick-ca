@@ -1,5 +1,4 @@
  * add a script for revoking certificates
- * add a configuration option for max age of certificates in cfg
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
  * create a stable branch, documentation on how to use it in README
  * write tests
