@@ -234,7 +234,6 @@ ISSUING_CA_CSR_FILE=\$BOOBOO_QUICK_CA_BASE/csr/issuing_ca.csr.pem
 
 CA_CHAIN_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
 CA_CHAIN_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain.cert.pem
-CA_CHAIN_PLUS_CRL_FILE_FULL=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain_plus_crl.\${ISSUING_CA_DATE_EXTENSION}.cert.pem
 CA_CHAIN_PLUS_CRL_FILE=\$BOOBOO_QUICK_CA_BASE/ca_certs/ca_chain_plus_crl.cert.pem
 
 CUSTOMER_CERT_DATE_EXTENSION=\$(date +%Y-%m-%d)
@@ -713,8 +712,7 @@ else
         logical_symlink $ROOT_CA_CRL_FILE $ISSUING_CA_CRL_FILE
     fi
 
-    cat $ROOT_CA_CERT_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE_FULL
-    chmod 444 $CA_CHAIN_PLUS_CRL_FILE_FULL
-    logical_symlink $CA_CHAIN_PLUS_CRL_FILE_FULL $CA_CHAIN_PLUS_CRL_FILE
+    cat $ROOT_CA_CERT_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE
+    chmod 444 $CA_CHAIN_PLUS_CRL_FILE
     echo :: CA chain file including CRL is: $CA_CHAIN_PLUS_CRL_FILE_FULL
 fi

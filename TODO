@@ -1,4 +1,5 @@
- * add a script for revoking certificates
+ * add a script for just validating a certificate against the CA and maybe CRL
+ * add a script for renewing the issuing CA
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
  * create a stable branch, documentation on how to use it in README
  * write tests
@@ -6,3 +7,4 @@
     * client: openssl s_client -verify_return_error -verify 3 -CAfile ca_certs/ca-chain.cert.pem -connect <hostname>:8443
           or: curl --cacert ./ca_certs/ca-chain.cert.pem https://verleihnix.gallien.stroessenreuther.net:8443/
  * show_ssl_file.sh: if handling multi-part pem files like ca_certs/ca_chain_plus_crl.cert.pem: display contents of all parts
+  add hooks for hookscripts in the beginning and end of each script

@@ -93,7 +93,14 @@ function create_crl_root_ca { # .------------------------------------------.
             [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
         done
 
+        # we also need to renew the CA_CHAIN_PLUS_CRL_FILE
+        chmod 644 $CA_CHAIN_PLUS_CRL_FILE
+        cat $ROOT_CA_CERT_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE
+        chmod 444 $CA_CHAIN_PLUS_CRL_FILE
+
+        echo ::
         echo :: You now have:
+        echo ::
         openssl crl  -text -noout -in $ROOT_CA_CRL_FILE
         chmod 644 $ROOT_CA_CRL_FILE
     else
@@ -123,12 +130,13 @@ function create_crl_issuing_ca { # .---------------------------------------.
             [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
         done
 
-        chmod 644 $CA_CHAIN_PLUS_CRL_FILE_FULL
-        cat $ISSUING_CA_CERT_FILE $ROOT_CA_CERT_FILE $ISSUING_CA_CRL_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE_FULL
-        chmod 444 $CA_CHAIN_PLUS_CRL_FILE_FULL
-        logical_symlink $CA_CHAIN_PLUS_CRL_FILE_FULL $CA_CHAIN_PLUS_CRL_FILE
+        # we also need to renew the CA_CHAIN_PLUS_CRL_FILE
+        chmod 644 $CA_CHAIN_PLUS_CRL_FILE
+        cat $ISSUING_CA_CERT_FILE $ROOT_CA_CERT_FILE $ISSUING_CA_CRL_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE
+        chmod 444 $CA_CHAIN_PLUS_CRL_FILE
+
         echo ::
-        echo :: Created CA chain file including CRLs: $CA_CHAIN_PLUS_CRL_FILE_FULL
+        echo :: Created CA chain file including CRLs: $CA_CHAIN_PLUS_CRL_FILE
         echo ::
 
         echo :: You now have:

@@ -103,6 +103,24 @@ Switch to your CA user, change to your CA directory and use
 to display the help screen explaining all command line options.
 
 
+Revoke a certificate
+--------------------
+
+To revoke a certificate you issued, switch to your CA user, change to your
+CA directory and use
+
+   bin/revoke.sh -f <cert_file>
+
+To revoke your Issuing CA certificate, switch to your CA user, change to your
+CA directory and use
+
+   bin/revoke.sh -i
+
+For more infos refer to the help screen displayed by
+
+   bin/revoke.sh -h
+
+
 Renew CRL(s)
 ------------
 

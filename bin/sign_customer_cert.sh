@@ -200,7 +200,7 @@ else
 fi
 # Use the CA certificate chain file we created earlier to verify that the new
 # certificate has a valid chain of trust.
-openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE_FULL $CUSTOMER_CERT_CERT_FILE_PEM
+openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CUSTOMER_CERT_CERT_FILE_PEM
 display_rc $? 1
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
