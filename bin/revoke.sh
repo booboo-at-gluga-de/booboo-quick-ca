@@ -76,6 +76,13 @@ fi
 #.
 
 if [[ $REVOKE_ISSUING_CA = 1 ]]; then
+    if [[ $SEPARATE_ISSUING_CA != "yes" ]]; then
+        echo ::
+        echo -e :: ${RED}You do not have a separate Issuing CA - unable to revoke it!${NO_COLOR}
+        echo ::
+        exit 1
+    fi
+
     OPENSSL_CNF_FILE=$ROOT_CA_OPENSSL_CNF_FILE
     CERT_FILE=$ISSUING_CA_CERT_FILE
 
