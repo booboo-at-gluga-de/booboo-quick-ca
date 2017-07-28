@@ -143,6 +143,18 @@ For help use
    bin/renew_crl.sh -h
 
 
+Renew Issuing CA
+----------------
+
+If you did your setup with a separate Issuing CA (which is the default)
+your Issuing CA typically has a shorter livetime than your Root CA. So at
+one point you will have to renew your Issuing CA.
+
+To do this switch to your CA user, change to your CA directory and use
+
+    bin/setup_CA.sh -i
+
+
 Display csr, pem, der, jks or pkcs12 files
 ------------------------------------------
 

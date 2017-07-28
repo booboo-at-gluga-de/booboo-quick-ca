@@ -7,4 +7,4 @@
     * client: openssl s_client -verify_return_error -verify 3 -CAfile ca_certs/ca-chain.cert.pem -connect <hostname>:8443
           or: curl --cacert ./ca_certs/ca-chain.cert.pem https://verleihnix.gallien.stroessenreuther.net:8443/
  * show_ssl_file.sh: if handling multi-part pem files like ca_certs/ca_chain_plus_crl.cert.pem: display contents of all parts
-  add hooks for hookscripts in the beginning and end of each script
+ * add hooks for hookscripts in the beginning and end of each script
