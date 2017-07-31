@@ -1,0 +1,18 @@
+Documentation for BooBoo Quick CA
+=================================
+
+
+User Documentation
+------------------
+
+For everything a of BooBoo Quick CA is interested in (how to setup, how to
+use, ...) see README
+
+
+Technical Documentaion
+----------------------
+
+Things one needs to understand how BooBoo Quick CA works are documented
+primarily using comments in the scripts and config files itself.
+
+Everything else see technical_documentation.txt

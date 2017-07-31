@@ -1,0 +1,30 @@
+Technical Documentaion for BooBoo Quick CA
+==========================================
+
+Things one needs to understand how BooBoo Quick CA works are documented
+primarily using comments in the scripts and config files itself.
+Everything else you find below.
+
+
+Testing Certificates within a SSL/TLS Connection
+------------------------------------------------
+
+If it is not enough for your usecase to just verify a certificate against
+your CA, you might want to establish a real SSL/TLS Connection between
+two processes. You can achieve this for example by
+
+    # create a certificate for your host
+    bin/create_customer_cert.sh -n $(hostname -f)
+
+    # in one terminal you start a server process
+    openssl s_server -port 8443 -cert customer_certs/$(hostname -f).$(date +%Y-%m-%d).cert.pem -key customer_private_keys/$(hostname -f).$(date +%Y-%m-%d).key.pem
+
+    # from a second terminal you connect against the server
+    echo '########## this should appear in server window ##########' | openssl s_client -verify_return_error -verify 3 -CAfile ca_certs/ca_chain_plus_crl.cert.pem -connect $(hostname -f):8443
+
+    # alternatively in the second terminal you can use curl to connect to the server
+    curl --cacert ca_certs/ca_chain.cert.pem --max-time 2 https://$(hostname -f):8443/
+    # do not care about a message like
+    # curl: (28) Operation timed out after 2001 milliseconds with 0 bytes received
+    # that's ok, because our dumb server does not send a response
+    # important for this test case is only not to get a certificate warning
