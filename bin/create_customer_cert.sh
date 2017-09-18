@@ -25,12 +25,16 @@
 function help { # .-------------------------------------------------------
     echo
     echo "call using:"
-    echo "$0 [-c|-s] -n <COMMON_NAME> [-a <SUBJECT_ALTERNATE_NAME>]+"
+    echo "$0 [-c|-s] [-u] -n <COMMON_NAME> [-a <SUBJECT_ALTERNATE_NAME>]+"
     echo "$0 -h"
     echo
     echo "where"
     echo "    -c            tells to create a client certificate"
     echo "    -s            tells to create a server certificate (this is the default)"
+    echo "    -u            unprotected key file"
+    echo "                  do not protect the key file (in PEM format) with a passphrase"
+    echo "                  (this might be needed for auto startup of a daemon but is"
+    echo "                  less secure and therefor not recommended)"
     echo "    -a            add a subject alternate name"
     echo "                  the certificate will be valid for the <COMMON_NAME> as well"
     echo "                  as for all names given as <SUBJECT_ALTERNATE_NAME>"
@@ -45,6 +49,7 @@ BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
 HAVE_KEYTOOL=1
+CUSTOMER_CERT_KEY_PROTECTED=1
 CUSTOMER_CERT_TYPE="server_cert"
 declare -a SUBJECT_ALTERNATE_NAMES
 
@@ -52,13 +57,16 @@ source $BOOBOO_QUICK_CA_BASE/bin/common_functions
 do_not_run_as_root
 
 # .-- command line options -----------------------------------------------
-while getopts ":scn:a:h" opt; do
+while getopts ":scun:a:h" opt; do
     case $opt in
     n)
         CUSTOMER_CERT_CN=$OPTARG
         ;;
     c)
         CUSTOMER_CERT_TYPE="client_cert"
+        ;;
+    u)
+        CUSTOMER_CERT_KEY_PROTECTED=0
         ;;
     s)
         CUSTOMER_CERT_TYPE="server_cert"
@@ -126,10 +134,16 @@ echo ::
 echo -e :: ${HEADLINE_COLOR}Creating Key...${NO_COLOR}
 echo ::
 
+if [[ $CUSTOMER_CERT_KEY_PROTECTED -ne 0 ]]; then
+    CUSTOMER_CERT_PROTECT_OPTION="-aes256"
+else
+    CUSTOMER_CERT_PROTECT_OPTION=""
+fi
+
 umask 077
 RC=255
 while [[ $RC -ne 0 ]]; do
-    openssl genrsa -aes256 -out $CUSTOMER_CERT_KEY_FILE $CUSTOMER_CERT_KEY_LENGTH
+    openssl genrsa $CUSTOMER_CERT_PROTECT_OPTION -out $CUSTOMER_CERT_KEY_FILE $CUSTOMER_CERT_KEY_LENGTH
     RC=$?
     [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
 done
