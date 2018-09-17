@@ -2,6 +2,3 @@
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
  * create a stable branch, documentation on how to use it in README
  * show_ssl_file.sh: if handling multi-part pem files like ca_certs/ca_chain_plus_crl.cert.pem: display contents of all parts
- * hookscripts in the beginning and end of each script:
-      * if pre script exits non 0: print WARNING
-      * if hook script is configured and does not exist or is not executable: Print a WARNING

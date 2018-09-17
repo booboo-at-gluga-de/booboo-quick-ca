@@ -215,13 +215,32 @@ function hook_script { # .------------------------------------------------.
     # 1st param is "pre" or "post"
     HOOK=$1
     if [[ $HOOK = "pre" ]] || [[ $HOOK = "post" ]]; then
-        if [[ ! -z "$HOOK_SCRIPT" ]] && [[ -x "$HOOK_SCRIPT" ]]; then
-            $HOOK_SCRIPT $HOOK $(basename $0)
-            HOOK_RC=$?
+        if [[ ! -z "$HOOK_SCRIPT" ]]; then
+            if [[ -x "$HOOK_SCRIPT" ]]; then
+                $HOOK_SCRIPT $HOOK $(basename $0)
+                HOOK_RC=$?
 
-            # break main script if pre hook exits with non zero return code
-            if [[ $HOOK = "pre" ]] && [[ $HOOK_RC -ne 0 ]]; then
-                exit 255
+                if [[ $HOOK_RC -ne 0 ]]; then
+                    # break main script if pre hook exits with non zero return code
+                    if [[ $HOOK = "pre" ]]; then
+                        echo ::
+                        echo -e :: ${RED}ERROR: Hook script returned an error! Aborting!${NO_COLOR}
+                        echo :: $HOOK_SCRIPT was executed in pre hook and returned an error.
+                        echo :: Return Code was $HOOK_RC
+                        exit 255
+                    # issue a WARNING if post hook exits with non zero return code
+                    elif [[ $HOOK = "post" ]]; then
+                        echo ::
+                        echo -e :: ${ORANGE}WARNING: Hook script returned an error!${NO_COLOR}
+                        echo :: $HOOK_SCRIPT was executed in post hook and returned an error.
+                        echo :: Return Code was $HOOK_RC
+                    fi
+                fi
+            else
+                echo ::
+                echo -e :: ${ORANGE}WARNING: Hook script does not exist or is not executable!${NO_COLOR}
+                echo :: Config says you want $HOOK_SCRIPT to be executed as a hook script,
+                echo :: but this file does not exist or is not executable!
             fi
         fi
     fi
