@@ -1,0 +1,8 @@
+a2enmod cgi
+
+symlink in /etc/apache2/sites-enabled:
+booboo-quick-ca.conf -> /home/quickca/git/github/booboo-quick-ca/webserver/config/booboo-quick-ca.conf
+
+perl + file::chmod, e. g.
+aptitude install libfile-chmod-perl
+

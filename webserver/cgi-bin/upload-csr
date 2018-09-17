@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+
+# BooBoo Quick CA
+# Copyright (C) 2017, Bernd Stroessenreuther <booboo@gluga.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use MIME::Base64;
+use File::Temp;
+use File::chmod;
+use CGI;
+# restrict maximum size of posted data
+$CGI::POST_MAX=10000;
+# disallow uploads
+$CGI::DISABLE_UPLOADS=1;
+# log to the log of webserver
+use CGI::Carp;
+use strict;
+use Data::Dumper;
+
+# where to put uploaded CSRs to
+# must be a directory writable by the user the webserver is running under
+my $csr_dir = "/home/quickca/git/github/booboo-quick-ca/csr";
+
+my $query = new CGI;
+my $csr = "";
+my ($csr, $csr_file);
+
+print $query->header;
+
+if ( defined $query->{"param"}->{"keywords"} ) {
+    # print Dumper($query->{"param"}->{"keywords"}) . "\n";
+    $csr = join('', @{$query->{"param"}->{"keywords"}});
+}
+
+if ( defined $query->{".parameters"} ) {
+    # print Dumper($query->{".parameters"}) . "\n";
+    $csr = join('', @{$query->{".parameters"}});
+}
+
+if ( $csr eq "" ) {
+    print "\nReceived no CSR\n";
+    print "===============\n\n";
+    give_hint();
+} else {
+    $csr = decode_base64($csr);
+
+    if ( $csr =~ m/^-----BEGIN CERTIFICATE REQUEST-----/ && $csr =~ m/-----END CERTIFICATE REQUEST-----$/ ) {
+        print "\nReceived CSR\n";
+        print "============\n\n";
+        print "$csr\n";
+        $csr_file = File::Temp->new( TEMPLATE => 'req.XXXXXXXXXX',
+                                     DIR      => $csr_dir,
+                                     SUFFIX   => '.csr',
+                                     UNLINK   => 0);
+        print "csr_file: " . $csr_file->filename . "\n";
+        print $csr_file "$csr\n";
+        close ($csr_file);
+        chmod(0644,$csr_file->filename);
+    } else {
+        print "\nReceived invalid CSR\n";
+        print "====================\n\n";
+        give_hint();
+    }
+}
+
+sub give_hint () {
+    print "Expecting a base64 encoded Certificate Signing Request (CSR).\n";
+    print "This could be done e. g. by:\n\n";
+    print "cat /path/to/bla.csr | base64 | curl --data-ascii \@- ${ENV{'REQUEST_SCHEME'}}://${ENV{'HTTP_HOST'}}${ENV{'SCRIPT_NAME'}}\n\n";
+}
