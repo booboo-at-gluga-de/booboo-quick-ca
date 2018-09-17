@@ -53,6 +53,8 @@ if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 fi
 
+hook_script pre
+
 # .-- command line options -----------------------------------------------
 while getopts ":ch" opt; do
     case $opt in
@@ -80,3 +82,5 @@ else
     create_crl_root_ca
     create_crl_issuing_ca
 fi
+
+hook_script post

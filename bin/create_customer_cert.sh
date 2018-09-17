@@ -109,6 +109,8 @@ else
     exit 1
 fi
 
+hook_script pre
+
 echo ::
 echo -e :: ${HEADLINE_COLOR}Checking for already existing files...${NO_COLOR}
 echo ::
@@ -338,3 +340,5 @@ fi
 # remind user to renew CRL certificates if needed
 check_crl_validity "root_ca" -q
 check_crl_validity "issuing_ca" -q
+
+hook_script post

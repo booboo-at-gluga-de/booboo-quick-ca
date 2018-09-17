@@ -47,6 +47,8 @@ if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 fi
 
+hook_script pre
+
 # .-- command line options -----------------------------------------------
 while getopts ":if:h" opt; do
     case $opt in
@@ -118,3 +120,5 @@ if [[ ! -z $CRL_CHECK_OPTION ]]; then
     openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CERT_FILE | grep "lookup:certificate revoked" > /dev/null 2>/dev/null
     display_rc $? 0
 fi
+
+hook_script post

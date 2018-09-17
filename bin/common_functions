@@ -211,3 +211,20 @@ function check_crl_validity { # .------------------------------------------.
 }
 
 #.
+function hook_script { # .------------------------------------------------.
+    # 1st param is "pre" or "post"
+    HOOK=$1
+    if [[ $HOOK = "pre" ]] || [[ $HOOK = "post" ]]; then
+        if [[ ! -z "$HOOK_SCRIPT" ]] && [[ -x "$HOOK_SCRIPT" ]]; then
+            $HOOK_SCRIPT $HOOK $(basename $0)
+            HOOK_RC=$?
+
+            # break main script if pre hook exits with non zero return code
+            if [[ $HOOK = "pre" ]] && [[ $HOOK_RC -ne 0 ]]; then
+                exit 255
+            fi
+        fi
+    fi
+}
+
+#.

@@ -45,6 +45,8 @@ if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 fi
 
+hook_script pre
+
 # .-- command line options -----------------------------------------------
 while getopts ":ih" opt; do
     case $opt in
@@ -249,6 +251,31 @@ ROOT_CA_CRL_DISTRIBUTION_POINTS=
 
 # ISSUING_CA_CRL_DISTRIBUTION_POINTS="URI:http://example.com/issuing_ca.crl.pem"
 ISSUING_CA_CRL_DISTRIBUTION_POINTS=
+
+###########################################################################
+# Hook Script
+###########################################################################
+#
+# A hook script can be used for your own automation topics. It can be called
+# before and after each script of BooBoo Quick CA. It might be useful e. g.
+# for copying your CRLs to the CRL distribution point (probably a webserver).
+#
+# It can be written in any language you like - it just needs to be executable.
+# As template you might want to use the script you find in
+#     bin/hook_script_sample.sh
+# Copy it to any location you like and make sure the setting below points to
+# this location.
+#
+# The script will be called with two parameters:
+# The first one is "pre" - called before a script starts working
+# or "post" - called after the script has done it's work.
+# The second one is the basename of the calling script.
+#
+# According your pre script:
+# Make sure it exits with Return Code 0 if you want to continue the calling
+# script. And make sure it returns something else if you want to abort it.
+
+# HOOK_SCRIPT=\$BOOBOO_QUICK_CA_BASE/bin/hook_script_sample.sh
 
 ###########################################################################
 # Path settings
@@ -779,3 +806,5 @@ else
         display_rc $? 0
     fi
 fi
+
+hook_script post
