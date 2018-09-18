@@ -101,7 +101,7 @@ fi
 
 hook_script pre
 
-CUSTOMER_CERT_CN=$(openssl req -text -noout -in $CUSTOMER_CERT_CSR_FILE_COMMANDLINE | grep "Subject: " | perl -e '$in=<STDIN>; if ( $in =~ m/CN=([^\/]+)/ ) { print "$1\n" } else  { print "none\n" }')
+CUSTOMER_CERT_CN=$(openssl req -text -noout -in $CUSTOMER_CERT_CSR_FILE_COMMANDLINE | grep "Subject: " | perl -e '$in=<STDIN>; if ( $in =~ m/CN *= *([^\/,]+)/ ) { print "$1\n" } else  { print "none\n" }')
 if [[ $CUSTOMER_CERT_CN = "none" ]]; then
     SERIAL=$(cat $ISSUING_CA_SERIAL_FILE)
     CUSTOMER_CERT_CN="CERT_$SERIAL"
