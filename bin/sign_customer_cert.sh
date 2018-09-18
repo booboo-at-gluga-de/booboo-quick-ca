@@ -143,6 +143,24 @@ TMP_OPENSSL_CNF_FILE=$(mktemp --tmpdir=$BOOBOO_QUICK_CA_BASE/tmp --suffix=.cnf o
 cp $ISSUING_CA_OPENSSL_CNF_FILE $TMP_OPENSSL_CNF_FILE
 sed -i -e "s/^ *commonName_default *=.*/commonName_default              =$CUSTOMER_CERT_CN/" $TMP_OPENSSL_CNF_FILE
 
+#
+# set crlDistributionPoints (if configured)
+#
+if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    sed -i -e "s#^ *\# *crlDistributionPoints *=.*#crlDistributionPoints              =$ISSUING_CA_CRL_DISTRIBUTION_POINTS#" $TMP_OPENSSL_CNF_FILE
+fi
+
+# if issuing a client certificate and CN is a eMail address:
+# suggest to put this eMail address into the email field too
+# (not only in the CN field) if USE_MAIL_ADDRESS_FOR_CN_AND_EMAIL
+# is set to yes in booboo-quick-ca.cfg
+if [[ $USE_MAIL_ADDRESS_FOR_CN_AND_EMAIL = "yes" ]]; then
+    if [[ $(echo $CUSTOMER_CERT_CN | egrep "^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$" | wc -l) -gt 0 ]]; then
+        # CN seems to be a valid eMail address
+        sed -i -e "s/^ *emailAddress_default *=.*/emailAddress_default            =$CUSTOMER_CERT_CN/" $TMP_OPENSSL_CNF_FILE
+    fi
+fi
+
 # put SANs into the temporary config file
 cat >> $TMP_OPENSSL_CNF_FILE <<END
 
