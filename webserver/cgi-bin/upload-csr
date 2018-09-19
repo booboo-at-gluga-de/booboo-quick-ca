@@ -18,6 +18,7 @@
 use MIME::Base64;
 use File::Temp;
 use File::chmod;
+use File::Basename;
 use CGI;
 # restrict maximum size of posted data
 $CGI::POST_MAX=10000;
@@ -34,7 +35,7 @@ my $csr_dir = "/home/quickca/git/github/booboo-quick-ca/csr";
 
 my $query = new CGI;
 my $csr = "";
-my ($csr, $csr_file);
+my ($csr_basename, $csr_file);
 
 print $query->header;
 
@@ -63,10 +64,13 @@ if ( $csr eq "" ) {
                                      DIR      => $csr_dir,
                                      SUFFIX   => '.csr',
                                      UNLINK   => 0);
-        print "csr_file: " . $csr_file->filename . "\n";
+        #print "csr_file: " . $csr_file->filename . "\n";
         print $csr_file "$csr\n";
         close ($csr_file);
         chmod(0644,$csr_file->filename);
+        $csr_basename=basename($csr_file->filename, ".csr");
+        print "Retrieve the certificate from ${ENV{'REQUEST_SCHEME'}}://${ENV{'HTTP_HOST'}}/certs/${csr_basename}.cert.pem as soon as it has been signed\n";
+        print "If the CA provides the certificate in DER format, this will additionally be avaiable at ${ENV{'REQUEST_SCHEME'}}://${ENV{'HTTP_HOST'}}/certs/${csr_basename}.cert.der\n";
     } else {
         print "\nReceived invalid CSR\n";
         print "====================\n\n";

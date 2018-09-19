@@ -41,6 +41,7 @@ QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
 HAVE_KEYTOOL=1
 CUSTOMER_CERT_TYPE="server_cert"
+DEVIANT_CERT_FILENAME=0
 
 source $BOOBOO_QUICK_CA_BASE/bin/common_functions
 do_not_run_as_root
@@ -187,6 +188,17 @@ chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM
 
 rm $TMP_OPENSSL_CNF_FILE
 
+# provide PEM file also under a name based on the CSR filename
+# (which is important for retrieving it by http)
+CSR_BASENAME=$(basename $CUSTOMER_CERT_CSR_FILE_COMMANDLINE .csr)
+CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME="${CUSTOMER_CERT_DIR}/${CSR_BASENAME}.cert.pem"
+CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME="${CUSTOMER_CERT_DIR}/${CSR_BASENAME}.cert.der"
+if [[ $CUSTOMER_CERT_CERT_FILE_PEM != $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME ]]; then
+    DEVIANT_CERT_FILENAME=1
+    cp $CUSTOMER_CERT_CERT_FILE_PEM $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME
+    chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME
+fi
+
 # The $ISSUING_CA_INDEX_FILE  file should contain a line referring to this new certificate.
 
 #V 160420124233Z 1000 unknown ... /CN=www.example.com
@@ -230,6 +242,11 @@ if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER
     display_rc $? 0
     chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
+
+    if [[ $DEVIANT_CERT_FILENAME -ne 0 ]]; then
+        cp $CUSTOMER_CERT_CERT_FILE_DER $CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME
+        chmod 444 $CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME
+    fi
 fi
 
 # pkcs12 and jks can not be generated: For both we would need the private key of the customer cert.
@@ -241,12 +258,24 @@ echo ::
 echo :: The certificate in PEM format:
 ls $CUSTOMER_CERT_CERT_FILE_PEM
 display_rc $? 0
+
+if [[ $DEVIANT_CERT_FILENAME -ne 0 ]]; then
+    echo :: This file can also been found under:
+    ls $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME
+    display_rc $? 0
+fi
 echo ::
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo :: The certificate in DER format \(as an alternative\):
     ls $CUSTOMER_CERT_CERT_FILE_DER
     display_rc $? 0
+
+    if [[ $DEVIANT_CERT_FILENAME -ne 0 ]]; then
+        echo :: This file can also been found under:
+        ls $CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME
+        display_rc $? 0
+    fi
     echo ::
 fi
 
