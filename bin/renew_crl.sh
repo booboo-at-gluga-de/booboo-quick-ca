@@ -39,6 +39,13 @@ function help { # .-------------------------------------------------------
     echo "    -c   Check validity period only (do not renew)"
     echo "    -h   Display this help screen and exit"
     echo
+    echo "if you want to automate your CRL renewal, you can provide the passwords"
+    echo "of your Root CA certificate in an environment variable"
+    echo "   QUICK_CA_ROOT_CA_CREDENTIAL"
+    echo "and if you have an Issuing CA its password in"
+    echo "   QUICK_CA_ISSUING_CA_CREDENTIAL"
+    echo "PLEASE NOTE that this might be an security issue!"
+    echo
 }
 #.
 

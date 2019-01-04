@@ -86,11 +86,25 @@ function create_crl_root_ca { # .------------------------------------------.
         echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Root CA...${NO_COLOR}
         echo ::
 
+        if [[ ! -z $QUICK_CA_ROOT_CA_CREDENTIAL ]]; then
+            echo :: Using credential from environment \(QUICK_CA_ROOT_CA_CREDENTIAL\)
+            ROOT_CA_CREDENTIAL_OPTION="-passin env:QUICK_CA_ROOT_CA_CREDENTIAL"
+        else
+            ROOT_CA_CREDENTIAL_OPTION=""
+        fi
+
         RC=255
         while [[ $RC -ne 0 ]]; do
-            openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE
+            openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -gencrl -out $ROOT_CA_CRL_FILE $ROOT_CA_CREDENTIAL_OPTION
             RC=$?
-            [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+            if [[ $RC -ne 0 ]]; then
+                if [[ -z $QUICK_CA_ROOT_CA_CREDENTIAL ]]; then
+                    echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+                else
+                    echo -e :: ${ORANGE}WARNING: This did not work. Retrying without QUICK_CA_ROOT_CA_CREDENTIAL...${NO_COLOR}
+                    ROOT_CA_CREDENTIAL_OPTION=""
+                fi
+            fi
         done
 
         # we also need to renew the CA_CHAIN_PLUS_CRL_FILE
@@ -123,11 +137,25 @@ function create_crl_issuing_ca { # .---------------------------------------.
         echo -e :: ${HEADLINE_COLOR}Creating a Certificate Revocation List \(CRL\) for the Issuing CA...${NO_COLOR}
         echo ::
 
+        if [[ ! -z $QUICK_CA_ISSUING_CA_CREDENTIAL ]]; then
+            echo :: Using credential from environment \(QUICK_CA_ISSUING_CA_CREDENTIAL\)
+            ISSUING_CA_CREDENTIAL_OPTION="-passin env:QUICK_CA_ISSUING_CA_CREDENTIAL"
+        else
+            ISSUING_CA_CREDENTIAL_OPTION=""
+        fi
+
         RC=255
         while [[ $RC -ne 0 ]]; do
-            openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE
+            openssl ca -config $ISSUING_CA_OPENSSL_CNF_FILE -gencrl -out $ISSUING_CA_CRL_FILE $ISSUING_CA_CREDENTIAL_OPTION
             RC=$?
-            [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+            if [[ $RC -ne 0 ]]; then
+                if [[ -z $QUICK_CA_ISSUING_CA_CREDENTIAL ]]; then
+                    echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+                else
+                    echo -e :: ${ORANGE}WARNING: This did not work. Retrying without QUICK_CA_ISSUING_CA_CREDENTIAL...${NO_COLOR}
+                    ISSUING_CA_CREDENTIAL_OPTION=""
+                fi
+            fi
         done
 
         # we also need to renew the CA_CHAIN_PLUS_CRL_FILE
