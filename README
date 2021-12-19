@@ -201,7 +201,7 @@ remove your previous files.
 
 Switch to your CA user, change to your CA directory and use
 
-   rm -Rf ca_certs ca_config ca_private_keys crl csr customer_certs customer_private_keys
+   rm -Rf ca_certs ca_config ca_private_keys crl csr customer_certs customer_private_keys tmp
 
 This keeps the binaries of BooBoo Quick CA, but removes all the certificates
 and config files created before.

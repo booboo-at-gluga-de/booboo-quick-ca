@@ -1,0 +1,126 @@
+#!/usr/bin/expect -f
+
+# this is the expect script for running setup_CA.sh for the first time
+
+set timeout -1
+spawn bin/setup_CA.sh
+
+# Setting up your new Root CA
+# Do you want to setup your CA in /tmp/tmp.eTJgbR4OKV? y
+expect "Do you want to setup your CA in /tmp/tmp."
+send -- "y\r"
+
+# Creating Key for Root CA...
+# Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
+expect "root_ca.key.pem:"
+send -- "test123\r"
+# Verifying - Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
+expect "root_ca.key.pem:"
+send -- "test123\r"
+
+# Creating Root CA certificate...
+# Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
+expect "root_ca.key.pem:"
+send -- "test123\r"
+
+# Country Name (2 letter code) [DE]:
+expect "Country Name"
+send -- "\r"
+
+# State or Province Name [Gallien]:
+expect "State or Province Name"
+send -- "\r"
+
+# Locality Name [Gallisches Dorf]:
+expect "Locality Name"
+send -- "\r"
+
+# Organization Name [Die Gallier]:
+expect "Organization Name"
+send -- "\r"
+
+# Organizational Unit Name []:
+expect "Organizational Unit Name"
+send -- "\r"
+
+# Common Name [RootCA.example.com]:
+expect "Common Name"
+send -- "\r"
+
+# Email Address [certificates@example.com]:
+expect "Email Address"
+send -- "\r"
+
+# Please verify your Root CA and press ENTER if OK
+expect "Please verify your Root CA and press ENTER if OK"
+send -- "\r"
+
+# Creating a Certificate Revocation List (CRL) for the Root CA...
+# Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
+expect "root_ca.key.pem:"
+send -- "test123\r"
+
+# Creating Key for Issuing CA...
+# Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/issuing_ca.2021.key.pem:
+expect "ca_private_keys/issuing_ca.20"
+send -- "test123\r"
+# Verifying - Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/issuing_ca.2021.key.pem:
+expect "ca_private_keys/issuing_ca.20"
+send -- "test123\r"
+
+# Creating Certificate Signing Request (CSR) for Issuing CA...
+# Enter pass phrase for /tmp/tmp.CeLzbzBi5u/ca_private_keys/issuing_ca.2021.key.pem:
+expect "ca_private_keys/issuing_ca.20"
+send -- "test123\r"
+
+# Country Name (2 letter code) [DE]:
+expect "Country Name"
+send -- "\r"
+
+# State or Province Name [Gallien]:
+expect "State or Province Name"
+send -- "\r"
+
+# Locality Name [Gallisches Dorf]:
+expect "Locality Name"
+send -- "\r"
+
+# Organization Name [Die Gallier]:
+expect "Organization Name"
+send -- "\r"
+
+# Organizational Unit Name []:
+expect "Organizational Unit Name"
+send -- "\r"
+
+# Common Name [IssuingCA.example.com]:
+expect "Common Name"
+send -- "\r"
+
+# Email Address [certificates@example.com]:
+expect "Email Address"
+send -- "\r"
+
+# Creating Issuing CA certificate...
+# Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
+expect "root_ca.key.pem:"
+send -- "test123\r"
+
+# Sign the certificate? [y/n]:y
+expect "Sign the certificate?"
+send -- "y\r"
+
+# 1 out of 1 certificate requests certified, commit? [y/n]y
+expect "1 out of 1 certificate requests certified, commit?"
+send -- "y\r"
+
+# Please verify your Issuing CA and press ENTER if OK
+expect "Please verify your Issuing CA and press ENTER if OK"
+send -- "\r"
+
+# Creating a Certificate Revocation List (CRL) for the Issuing CA...
+# Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/issuing_ca.key.pem:
+expect "issuing_ca.key.pem:"
+send -- "test123\r"
+
+expect eof

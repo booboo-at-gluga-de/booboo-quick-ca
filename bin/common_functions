@@ -22,6 +22,8 @@
 
 # .-- color definitions ----------------------------------------------------.
 HEADLINE_COLOR='\033[1;34m'
+UNITTEST_COLOR='\033[1;36m'
+UNITTEST_MARKER_COLOR='\033[0;36m'
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 ORANGE='\033[0;33m'
