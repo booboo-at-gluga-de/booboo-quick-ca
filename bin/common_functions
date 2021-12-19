@@ -110,7 +110,10 @@ function create_crl_root_ca { # .------------------------------------------.
         done
 
         # we also need to renew the CA_CHAIN_PLUS_CRL_FILE
-        chmod 644 $CA_CHAIN_PLUS_CRL_FILE
+        if [[ -e $CA_CHAIN_PLUS_CRL_FILE ]]; then
+            # on initial setup the file is not yet existing
+            chmod 644 $CA_CHAIN_PLUS_CRL_FILE
+        fi
         cat $ROOT_CA_CERT_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE
         chmod 444 $CA_CHAIN_PLUS_CRL_FILE
 
