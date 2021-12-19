@@ -23,18 +23,65 @@
 
 CODE_BASE=${CODE_BASE:-$(readlink -f $(dirname $0)/..)}
 CWD=$(pwd)
+SIGNALS="HUP INT QUIT TERM ABRT"
+LC_ALL=C
 
 source ${CODE_BASE}/bin/common_functions
 do_not_run_as_root
 
-function utecho { # .------------------------------------------.
+
+#
+# Utilities
+#
+cleanup_temp_files() {
+    SIGNALS=$1
+
+    # if you want to keep the temporary working directory, make sure you set
+    # an environment variable
+    # KEEP_TMP=1
+    # before calling the script
+    if [[ ${KEEP_TMP} -eq 0 ]]; then
+        rm -Rf ${UNITTEST_WORKINGDIR}
+    else
+        utecho ""
+        utecho "Keeping working directory in ${UNITTEST_WORKINGDIR} - please care for removing it yourself"
+        utecho ""
+    fi
+
+    trap - ${SIGNALS}
+}
+
+oneTimeTearDown() {
+    # Cleanup before program termination
+    # Using named signals to be POSIX compliant
+    cleanup_temp_files ${SIGNALS}
+}
+
+function utecho() {
     MESSAGE="$*"
     echo -e "${UNITTEST_MARKER_COLOR}###${NO_COLOR} ${MESSAGE}"
 }
 
-#.
+oneTimeSetUp() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Running Unit Tests for BooBoo Quick CA Scripts${NO_COLOR}"
+    utecho "${UNITTEST_COLOR}==============================================${NO_COLOR}"
+    utecho ""
+    utecho "Base directory for you CA is ${CODE_BASE}"
 
-# $SHUNIT2 should be defined as an environment variable before running the tests
+    UNITTEST_WORKINGDIR=$(mktemp -d)
+    BOOBOO_QUICK_CA_BASE=${UNITTEST_WORKINGDIR}
+
+    utecho ""
+    utecho "${UNITTEST_COLOR}Preparing Working directory for unit tests in ${UNITTEST_WORKINGDIR}${NO_COLOR}"
+    utecho ""
+    cp -Rv ${CODE_BASE}/bin ${UNITTEST_WORKINGDIR}
+}
+
+
+#
+# Check Prereq's
+#
 if [[ -z "${SHUNIT2}" ]]; then
     SHUNIT2=$( command -v shunit2 )
     if [[ -z "${SHUNIT2}" ]] && [[ -x "/usr/share/shunit2/shunit2" ]]; then
@@ -58,22 +105,6 @@ if [[ ! -x "${SHUNIT2}" ]]; then
     exit 1
 fi
 
-SIGNALS="HUP INT QUIT TERM ABRT"
-LC_ALL=C
-
-utecho ""
-utecho "${UNITTEST_COLOR}Running Unit Tests for BooBoo Quick CA Scripts${NO_COLOR}"
-utecho "${UNITTEST_COLOR}==============================================${NO_COLOR}"
-utecho ""
-utecho "Base directory for you CA is ${CODE_BASE}"
-
-UNITTEST_WORKINGDIR=$(mktemp -d)
-BOOBOO_QUICK_CA_BASE=${UNITTEST_WORKINGDIR}
-
-utecho ""
-utecho "${UNITTEST_COLOR}Preparing Working directory for unit tests in ${UNITTEST_WORKINGDIR}${NO_COLOR}"
-utecho ""
-cp -Rv ${CODE_BASE}/bin ${UNITTEST_WORKINGDIR}
 
 #
 # The Unit Tests to execute
