@@ -33,15 +33,17 @@ function help { # .-------------------------------------------------------
 }
 #.
 
-BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname "$0")/..)}
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f "$(dirname "$0")/..")}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
 JUST_RENEW_ISSUING_CA=0
 
+# shellcheck source=common_functions
 source "$BOOBOO_QUICK_CA_BASE"/bin/common_functions
 do_not_run_as_root
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
+    # shellcheck source=/dev/null
     source "$QUICK_CA_CFG_FILE"
 fi
 
@@ -82,7 +84,7 @@ fi
 #.
 
 if [[ $JUST_RENEW_ISSUING_CA -ne 1 ]]; then
-    if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    if [[ -n "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         ROOT_CA_CRL_DISTRIBUTION_POINTS_CONFIG_LINE="crlDistributionPoints = $ROOT_CA_CRL_DISTRIBUTION_POINTS"
     else
         ROOT_CA_CRL_DISTRIBUTION_POINTS_CONFIG_LINE=
@@ -98,8 +100,8 @@ if [[ $JUST_RENEW_ISSUING_CA -ne 1 ]]; then
     echo ":: BOOBOO_QUICK_CA_BASE=/path/to/base $0"
     echo ::
     echo -n ":: Do you want to setup your CA in $BOOBOO_QUICK_CA_BASE? "
-    read ANSWER
-    if [[ $(echo "$ANSWER" | grep -E -i "^(y|yes)$" | wc -l) -eq 0 ]]; then
+    IFS= read -r ANSWER
+    if [[ $(echo "$ANSWER" | grep -E -i -c "^(y|yes)$") -eq 0 ]]; then
         echo Aborting...
         exit 1
     fi
@@ -110,14 +112,14 @@ if [[ $JUST_RENEW_ISSUING_CA -ne 1 ]]; then
     for FILE in $ROOT_CA_INDEX_FILE $ROOT_CA_SERIAL_FILE $ROOT_CA_KEY_FILE $ROOT_CA_CERT_FILE; do
         if [[ -f $FILE ]]; then
             echo ":: $FILE already exists"
-            EXISTING_CONFIG_FILES=$(($EXISTING_CONFIG_FILES+1))
+            EXISTING_CONFIG_FILES=$((EXISTING_CONFIG_FILES+1))
         fi
     done
 
     if [[ $EXISTING_CONFIG_FILES -gt 0 ]]; then
         echo ::
         echo ":: Seems there is an existing CA already in $BOOBOO_QUICK_CA_BASE"
-        echo ":: If you want to setup a new one, please remove file\(s\) above."
+        echo ":: If you want to setup a new one, please remove file(s) above."
         echo ::
         exit 1
     else
@@ -127,8 +129,8 @@ if [[ $JUST_RENEW_ISSUING_CA -ne 1 ]]; then
     echo ::
     echo -e ":: ${HEADLINE_COLOR}Creating sub directories...${NO_COLOR}"
     umask 077
-    mkdir -p "$BOOBOO_QUICK_CA_BASE"/ca_config "$BOOBOO_QUICK_CA_BASE"/ca_certs "$BOOBOO_QUICK_CA_BASE"/ca_private_keys "$CUSTOMER_CERT_DIR" "$BOOBOO_QUICK_CA_BASE"/customer_private_keys "$BOOBOO_QUICK_CA_BASE"/crl "$BOOBOO_QUICK_CA_BASE"/csr "$BOOBOO_QUICK_CA_BASE"/tmp
-    chmod 700 "$BOOBOO_QUICK_CA_BASE"/ca_config "$BOOBOO_QUICK_CA_BASE"/ca_private_keys "$CUSTOMER_CERT_DIR" "$BOOBOO_QUICK_CA_BASE"/customer_private_keys "$BOOBOO_QUICK_CA_BASE"/csr "$BOOBOO_QUICK_CA_BASE"/tmp
+    mkdir -p "$BOOBOO_QUICK_CA_BASE"/ca_config "$BOOBOO_QUICK_CA_BASE"/ca_certs "$BOOBOO_QUICK_CA_BASE"/ca_private_keys "$BOOBOO_QUICK_CA_BASE"/customer_certs "$BOOBOO_QUICK_CA_BASE"/customer_private_keys "$BOOBOO_QUICK_CA_BASE"/crl "$BOOBOO_QUICK_CA_BASE"/csr "$BOOBOO_QUICK_CA_BASE"/tmp
+    chmod 700 "$BOOBOO_QUICK_CA_BASE"/ca_config "$BOOBOO_QUICK_CA_BASE"/ca_private_keys "$BOOBOO_QUICK_CA_BASE"/customer_certs "$BOOBOO_QUICK_CA_BASE"/customer_private_keys "$BOOBOO_QUICK_CA_BASE"/csr "$BOOBOO_QUICK_CA_BASE"/tmp
     chmod 755 "$BOOBOO_QUICK_CA_BASE"/ca_certs "$BOOBOO_QUICK_CA_BASE"/crl
 
     echo ::
@@ -524,7 +526,7 @@ END
     openssl x509 -noout -text -in "$ROOT_CA_CERT_FILE"
     echo ::
     echo -n ":: Please verify your Root CA and press ENTER if OK "
-    read TMP
+    IFS= read -r _
 
     create_crl_root_ca
 fi
@@ -707,7 +709,7 @@ END
     logical_symlink "$ISSUING_CA_KEY_FILE_FULL" "$ISSUING_CA_KEY_FILE"
 
     echo ::
-    echo -e ":: ${HEADLINE_COLOR}Creating Certificate Signing Request \(CSR\) for Issuing CA...${NO_COLOR}"
+    echo -e ":: ${HEADLINE_COLOR}Creating Certificate Signing Request (CSR) for Issuing CA...${NO_COLOR}"
     echo ::
 
     # Use the issuing CA key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
@@ -748,7 +750,7 @@ END
     openssl x509 -noout -text -in "$ISSUING_CA_CERT_FILE_FULL"
     echo ::
     echo -n ":: Please verify your Issuing CA and press ENTER if OK "
-    read TMP
+    IFS= read -r _
 
     create_crl_issuing_ca
 
