@@ -50,5 +50,5 @@ jobs:
           docker run --network host -w /booboo-quick-ca -v ${PWD}:/booboo-quick-ca ${{ matrix.distro }} \
               /bin/sh -c 'sh ./prep-cmd.sh \
               && uname -a \
-              && useradd -m quickca
+              && useradd -m quickca \
               && sudo -u quickca tests/unittest.sh'
