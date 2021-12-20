@@ -33,16 +33,16 @@ function help { # .-------------------------------------------------------
 }
 #.
 
-BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname "$0")/..)}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
 JUST_RENEW_ISSUING_CA=0
 
-source $BOOBOO_QUICK_CA_BASE/bin/common_functions
+source "$BOOBOO_QUICK_CA_BASE"/bin/common_functions
 do_not_run_as_root
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
-    source $QUICK_CA_CFG_FILE
+    source "$QUICK_CA_CFG_FILE"
 fi
 
 hook_script pre
@@ -66,17 +66,17 @@ while getopts ":ih" opt; do
 done
 
 if [[ $JUST_RENEW_ISSUING_CA -eq 1 ]] && [[ ! -f $QUICK_CA_CFG_FILE ]]; then
-    echo :: A config file
-    echo :: $QUICK_CA_CFG_FILE
-    echo :: does not exist.
-    echo -e :: ${RED}Probably you did not yet set up your CA already!${NO_COLOR}
-    echo :: Run $0 without -i option first.
+    echo ":: A config file"
+    echo ":: $QUICK_CA_CFG_FILE"
+    echo ":: does not exist."
+    echo -e ":: ${RED}Probably you did not yet set up your CA already!${NO_COLOR}"
+    echo ":: Run $0 without -i option first."
     exit 1
 fi
 
 if [[ $SEPARATE_ISSUING_CA != "yes" ]] && [[ $JUST_RENEW_ISSUING_CA -eq 1 ]]; then
-    echo -e :: ${RED}You do not have a separate Issuing CA!${NO_COLOR}
-    echo -e :: So no chance to renew it.
+    echo -e ":: ${RED}You do not have a separate Issuing CA!${NO_COLOR}"
+    echo -e ":: So no chance to renew it."
     exit 1
 fi
 #.
@@ -89,35 +89,35 @@ if [[ $JUST_RENEW_ISSUING_CA -ne 1 ]]; then
     fi
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Setting up your new Root CA${NO_COLOR}
-    echo -e :: ${HEADLINE_COLOR}===========================${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Setting up your new Root CA${NO_COLOR}"
+    echo -e ":: ${HEADLINE_COLOR}===========================${NO_COLOR}"
     echo ::
-    echo :: Base directory for you CA is $BOOBOO_QUICK_CA_BASE
-    echo :: If this is not what you want, set environment variable BOOBOO_QUICK_CA_BASE
-    echo :: to point somewhere else e. g. by calling this script as
-    echo :: BOOBOO_QUICK_CA_BASE=/path/to/base $0
+    echo ":: Base directory for you CA is $BOOBOO_QUICK_CA_BASE"
+    echo ":: If this is not what you want, set environment variable BOOBOO_QUICK_CA_BASE"
+    echo ":: to point somewhere else e. g. by calling this script as"
+    echo ":: BOOBOO_QUICK_CA_BASE=/path/to/base $0"
     echo ::
     echo -n ":: Do you want to setup your CA in $BOOBOO_QUICK_CA_BASE? "
     read ANSWER
-    if [[ $(echo $ANSWER | egrep -i "^(y|yes)$" | wc -l) -eq 0 ]]; then
+    if [[ $(echo "$ANSWER" | grep -E -i "^(y|yes)$" | wc -l) -eq 0 ]]; then
         echo Aborting...
         exit 1
     fi
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Checking base directory...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Checking base directory...${NO_COLOR}"
     echo ::
     for FILE in $ROOT_CA_INDEX_FILE $ROOT_CA_SERIAL_FILE $ROOT_CA_KEY_FILE $ROOT_CA_CERT_FILE; do
         if [[ -f $FILE ]]; then
-            echo :: $FILE already exists
+            echo ":: $FILE already exists"
             EXISTING_CONFIG_FILES=$(($EXISTING_CONFIG_FILES+1))
         fi
     done
 
     if [[ $EXISTING_CONFIG_FILES -gt 0 ]]; then
         echo ::
-        echo :: Seems there is an existing CA already in $BOOBOO_QUICK_CA_BASE
-        echo :: If you want to setup a new one, please remove file\(s\) above.
+        echo ":: Seems there is an existing CA already in $BOOBOO_QUICK_CA_BASE"
+        echo ":: If you want to setup a new one, please remove file\(s\) above."
         echo ::
         exit 1
     else
@@ -125,23 +125,23 @@ if [[ $JUST_RENEW_ISSUING_CA -ne 1 ]]; then
     fi
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating sub directories...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating sub directories...${NO_COLOR}"
     umask 077
-    mkdir -p $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/ca_private_keys $CUSTOMER_CERT_DIR $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/crl $BOOBOO_QUICK_CA_BASE/csr $BOOBOO_QUICK_CA_BASE/tmp
-    chmod 700 $BOOBOO_QUICK_CA_BASE/ca_config $BOOBOO_QUICK_CA_BASE/ca_private_keys $CUSTOMER_CERT_DIR $BOOBOO_QUICK_CA_BASE/customer_private_keys $BOOBOO_QUICK_CA_BASE/csr $BOOBOO_QUICK_CA_BASE/tmp
-    chmod 755 $BOOBOO_QUICK_CA_BASE/ca_certs $BOOBOO_QUICK_CA_BASE/crl
+    mkdir -p "$BOOBOO_QUICK_CA_BASE"/ca_config "$BOOBOO_QUICK_CA_BASE"/ca_certs "$BOOBOO_QUICK_CA_BASE"/ca_private_keys "$CUSTOMER_CERT_DIR" "$BOOBOO_QUICK_CA_BASE"/customer_private_keys "$BOOBOO_QUICK_CA_BASE"/crl "$BOOBOO_QUICK_CA_BASE"/csr "$BOOBOO_QUICK_CA_BASE"/tmp
+    chmod 700 "$BOOBOO_QUICK_CA_BASE"/ca_config "$BOOBOO_QUICK_CA_BASE"/ca_private_keys "$CUSTOMER_CERT_DIR" "$BOOBOO_QUICK_CA_BASE"/customer_private_keys "$BOOBOO_QUICK_CA_BASE"/csr "$BOOBOO_QUICK_CA_BASE"/tmp
+    chmod 755 "$BOOBOO_QUICK_CA_BASE"/ca_certs "$BOOBOO_QUICK_CA_BASE"/crl
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating config files...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating config files...${NO_COLOR}"
     echo ::
 
     # .-- creating $QUICK_CA_CFG_FILE ----------------------------------------.
-    if [[ ! -f $QUICK_CA_CFG_FILE ]]; then
-        echo :: A config file
-        echo :: $QUICK_CA_CFG_FILE
-        echo :: does not exist. Creating it for you!
+    if [[ ! -f "$QUICK_CA_CFG_FILE" ]]; then
+        echo ":: A config file"
+        echo ":: $QUICK_CA_CFG_FILE"
+        echo ":: does not exist. Creating it for you!"
 
-        cat > $QUICK_CA_CFG_FILE <<END
+        cat > "$QUICK_CA_CFG_FILE" <<END
 ###########################################################################
 # Default values for openssl commands
 ###########################################################################
@@ -325,7 +325,7 @@ END
         echo :: Edit this file now and fill it with you wanted values.
         echo :: At the moment it contains only sample data!
         echo ::
-        echo :: Afterwards, start this script \($0\) again.
+        echo :: Afterwards, start this script \("$0"\) again.
         echo ::
         exit 0
     fi
@@ -334,15 +334,15 @@ END
     # The index.txt file is where the OpenSSL ca tool stores the certificate
     # database. Do not delete or edit this file by hand. It should now contain
     # a line that refers to the issuing CA certificate.
-    touch $ROOT_CA_INDEX_FILE
+    touch "$ROOT_CA_INDEX_FILE"
 
-    echo 1000 > $ROOT_CA_SERIAL_FILE
+    echo 1000 > "$ROOT_CA_SERIAL_FILE"
 
     # crlnumber is used to keep track of certificate revocation lists.
-    echo 1000 > $ROOT_CA_CRL_NUMBER_FILE
+    echo 1000 > "$ROOT_CA_CRL_NUMBER_FILE"
 
     # .-- root_ca_openssl.cnf -------------------------------------------------.
-    cat > $ROOT_CA_OPENSSL_CNF_FILE <<END
+    cat > "$ROOT_CA_OPENSSL_CNF_FILE" <<END
 [ ca ]
 # see 'man ca'
 default_ca = CA_default
@@ -491,37 +491,37 @@ END
 #.
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating Key for Root CA...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating Key for Root CA...${NO_COLOR}"
     echo ::
 
     RC=255
     while [[ $RC -ne 0 ]]; do
-        openssl genrsa -aes256 -out $ROOT_CA_KEY_FILE $ROOT_CA_KEY_LENGTH
+        openssl genrsa -aes256 -out "$ROOT_CA_KEY_FILE" "$ROOT_CA_KEY_LENGTH"
         RC=$?
-        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        [[ $RC -ne 0 ]] && echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
     done
 
-    chmod 400 $ROOT_CA_KEY_FILE
+    chmod 400 "$ROOT_CA_KEY_FILE"
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating Root CA certificate...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating Root CA certificate...${NO_COLOR}"
     echo ::
 
     RC=255
     while [[ $RC -ne 0 ]]; do
-        openssl req -config $ROOT_CA_OPENSSL_CNF_FILE -key $ROOT_CA_KEY_FILE \
-              -new -x509 -days $ROOT_CA_LIFE_TIME -sha256 -extensions v3_ca -out $ROOT_CA_CERT_FILE
+        openssl req -config "$ROOT_CA_OPENSSL_CNF_FILE" -key "$ROOT_CA_KEY_FILE" \
+              -new -x509 -days "$ROOT_CA_LIFE_TIME" -sha256 -extensions v3_ca -out "$ROOT_CA_CERT_FILE"
         RC=$?
-        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        [[ $RC -ne 0 ]] && echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
     done
 
-    chmod 444 $ROOT_CA_CERT_FILE
+    chmod 444 "$ROOT_CA_CERT_FILE"
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Please verify your new Root CA Certificate:${NO_COLOR}
-    echo -e :: ${HEADLINE_COLOR}-------------------------------------------${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Please verify your new Root CA Certificate:${NO_COLOR}"
+    echo -e ":: ${HEADLINE_COLOR}-------------------------------------------${NO_COLOR}"
     echo ::
-    openssl x509 -noout -text -in $ROOT_CA_CERT_FILE
+    openssl x509 -noout -text -in "$ROOT_CA_CERT_FILE"
     echo ::
     echo -n ":: Please verify your Root CA and press ENTER if OK "
     read TMP
@@ -530,20 +530,20 @@ END
 fi
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}Setting up your new issuing CA${NO_COLOR}
-echo -e :: ${HEADLINE_COLOR}==============================${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}Setting up your new issuing CA${NO_COLOR}"
+echo -e ":: ${HEADLINE_COLOR}==============================${NO_COLOR}"
 echo ::
 
-if [[ $SEPARATE_ISSUING_CA = "yes" ]]; then
+if [[ "$SEPARATE_ISSUING_CA" = "yes" ]]; then
     if [[ $JUST_RENEW_ISSUING_CA -ne 1 ]]; then
-        touch $ISSUING_CA_INDEX_FILE
-        echo 1000 > $ISSUING_CA_SERIAL_FILE
+        touch "$ISSUING_CA_INDEX_FILE"
+        echo 1000 > "$ISSUING_CA_SERIAL_FILE"
 
         # crlnumber is used to keep track of certificate revocation lists.
-        echo 1000 > $ISSUING_CA_CRL_NUMBER_FILE
+        echo 1000 > "$ISSUING_CA_CRL_NUMBER_FILE"
 
         # .-- issuing_ca_openssl.cnf ---------------------------------------------.
-        cat > $ISSUING_CA_OPENSSL_CNF_FILE <<END
+        cat > "$ISSUING_CA_OPENSSL_CNF_FILE" <<END
 [ ca ]
 # see 'man ca'
 default_ca = CA_default
@@ -693,35 +693,35 @@ END
     fi
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating Key for Issuing CA...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating Key for Issuing CA...${NO_COLOR}"
     echo ::
 
     RC=255
     while [[ $RC -ne 0 ]]; do
-        openssl genrsa -aes256 -out $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_LENGTH
+        openssl genrsa -aes256 -out "$ISSUING_CA_KEY_FILE_FULL" "$ISSUING_CA_KEY_LENGTH"
         RC=$?
-        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        [[ $RC -ne 0 ]] && echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
     done
 
-    chmod 400 $ISSUING_CA_KEY_FILE_FULL
-    logical_symlink $ISSUING_CA_KEY_FILE_FULL $ISSUING_CA_KEY_FILE
+    chmod 400 "$ISSUING_CA_KEY_FILE_FULL"
+    logical_symlink "$ISSUING_CA_KEY_FILE_FULL" "$ISSUING_CA_KEY_FILE"
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating Certificate Signing Request \(CSR\) for Issuing CA...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating Certificate Signing Request \(CSR\) for Issuing CA...${NO_COLOR}"
     echo ::
 
     # Use the issuing CA key to create a certificate signing request (CSR). The details should generally match the root CA. The Common Name, however, must be different.
 
     RC=255
     while [[ $RC -ne 0 ]]; do
-        openssl req -config $ISSUING_CA_OPENSSL_CNF_FILE -new -sha256 \
-              -key $ISSUING_CA_KEY_FILE_FULL -out $ISSUING_CA_CSR_FILE
+        openssl req -config "$ISSUING_CA_OPENSSL_CNF_FILE" -new -sha256 \
+              -key "$ISSUING_CA_KEY_FILE_FULL" -out "$ISSUING_CA_CSR_FILE"
         RC=$?
-        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        [[ $RC -ne 0 ]] && echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
     done
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating Issuing CA certificate...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating Issuing CA certificate...${NO_COLOR}"
     echo ::
     # To create an issuing CA certificate, use the root CA with the v3_issuing_ca extension to sign the issuing CSR.
     # The issuing CA certificate should be valid for a shorter period than the root certificate. Ten years would be reasonable.
@@ -730,22 +730,22 @@ END
 
     RC=255
     while [[ $RC -ne 0 ]]; do
-        openssl ca -config $ROOT_CA_OPENSSL_CNF_FILE -extensions v3_issuing_ca \
-              -days $ISSUING_CA_LIFE_TIME -notext -md sha256 \
-              -in $ISSUING_CA_CSR_FILE -out $ISSUING_CA_CERT_FILE_FULL
+        openssl ca -config "$ROOT_CA_OPENSSL_CNF_FILE" -extensions v3_issuing_ca \
+              -days "$ISSUING_CA_LIFE_TIME" -notext -md sha256 \
+              -in "$ISSUING_CA_CSR_FILE" -out "$ISSUING_CA_CERT_FILE_FULL"
         RC=$?
-        [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+        [[ $RC -ne 0 ]] && echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
     done
 
-    chmod 444 $ISSUING_CA_CERT_FILE_FULL
-    logical_symlink $ISSUING_CA_CERT_FILE_FULL $ISSUING_CA_CERT_FILE
+    chmod 444 "$ISSUING_CA_CERT_FILE_FULL"
+    logical_symlink "$ISSUING_CA_CERT_FILE_FULL" "$ISSUING_CA_CERT_FILE"
 
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Please verify your new Issuing CA Certificate:${NO_COLOR}
-    echo -e :: ${HEADLINE_COLOR}----------------------------------------------${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Please verify your new Issuing CA Certificate:${NO_COLOR}"
+    echo -e ":: ${HEADLINE_COLOR}----------------------------------------------${NO_COLOR}"
     echo ::
-    openssl x509 -noout -text -in $ISSUING_CA_CERT_FILE_FULL
+    openssl x509 -noout -text -in "$ISSUING_CA_CERT_FILE_FULL"
     echo ::
     echo -n ":: Please verify your Issuing CA and press ENTER if OK "
     read TMP
@@ -753,28 +753,28 @@ END
     create_crl_issuing_ca
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Creating CA certificate chain file...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Creating CA certificate chain file...${NO_COLOR}"
     echo ::
     # To create the CA certificate chain, concatenate the issuing CA and root
     # certificates together. This can be used to verify certificates signed by
     # the issuing CA.
 
-    touch $CA_CHAIN_FILE_FULL
-    chmod 644 $CA_CHAIN_FILE_FULL
-    cat $ISSUING_CA_CERT_FILE_FULL $ROOT_CA_CERT_FILE > $CA_CHAIN_FILE_FULL
-    chmod 444 $CA_CHAIN_FILE_FULL
-    logical_symlink $CA_CHAIN_FILE_FULL $CA_CHAIN_FILE
-    echo :: CA chain file is: $CA_CHAIN_FILE_FULL
+    touch "$CA_CHAIN_FILE_FULL"
+    chmod 644 "$CA_CHAIN_FILE_FULL"
+    cat "$ISSUING_CA_CERT_FILE_FULL" "$ROOT_CA_CERT_FILE" > "$CA_CHAIN_FILE_FULL"
+    chmod 444 "$CA_CHAIN_FILE_FULL"
+    logical_symlink "$CA_CHAIN_FILE_FULL" "$CA_CHAIN_FILE"
+    echo ":: CA chain file is: $CA_CHAIN_FILE_FULL"
 
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Verifying the Issuing CA file against the Root CA certificate...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Verifying the Issuing CA file against the Root CA certificate...${NO_COLOR}"
     echo ::
-    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    if [[ -n "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         CRL_CHECK_OPTION="-crl_check_all"
     else
         CRL_CHECK_OPTION=
     fi
-    openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $ISSUING_CA_CERT_FILE_FULL
+    openssl verify "$CRL_CHECK_OPTION" -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$ISSUING_CA_CERT_FILE_FULL"
     display_rc $? 1
 
 else
@@ -783,27 +783,27 @@ else
     if [[ $JUST_RENEW_ISSUING_CA -eq 1 ]]; then
         echo ::
         echo :: You decided to work without a separate Issuing CA Certificate.
-        echo -e :: ${RED}So it is not possible to renew it${NO_COLOR}
+        echo -e ":: ${RED}So it is not possible to renew it${NO_COLOR}"
     else
         echo ::
         echo :: As you decided to work without a separate Issuing CA Certificate
         echo :: just symlinking you Root CA files as Issuing CA files
-        logical_symlink $ROOT_CA_INDEX_FILE $ISSUING_CA_INDEX_FILE
-        logical_symlink $ROOT_CA_CRL_NUMBER_FILE $ISSUING_CA_CRL_NUMBER_FILE
-        logical_symlink $ROOT_CA_OPENSSL_CNF_FILE $ISSUING_CA_OPENSSL_CNF_FILE
-        logical_symlink $ROOT_CA_KEY_FILE $ISSUING_CA_KEY_FILE
-        logical_symlink $ROOT_CA_CERT_FILE $ISSUING_CA_CERT_FILE
-        logical_symlink $ROOT_CA_CERT_FILE $CA_CHAIN_FILE
+        logical_symlink "$ROOT_CA_INDEX_FILE" "$ISSUING_CA_INDEX_FILE"
+        logical_symlink "$ROOT_CA_CRL_NUMBER_FILE" "$ISSUING_CA_CRL_NUMBER_FILE"
+        logical_symlink "$ROOT_CA_OPENSSL_CNF_FILE" "$ISSUING_CA_OPENSSL_CNF_FILE"
+        logical_symlink "$ROOT_CA_KEY_FILE" "$ISSUING_CA_KEY_FILE"
+        logical_symlink "$ROOT_CA_CERT_FILE" "$ISSUING_CA_CERT_FILE"
+        logical_symlink "$ROOT_CA_CERT_FILE" "$CA_CHAIN_FILE"
         if [[ -f $ROOT_CA_CRL_FILE ]]; then
-            logical_symlink $ROOT_CA_CRL_FILE $ISSUING_CA_CRL_FILE
+            logical_symlink "$ROOT_CA_CRL_FILE" "$ISSUING_CA_CRL_FILE"
         fi
 
-        touch $CA_CHAIN_PLUS_CRL_FILE
-        chmod 644 $CA_CHAIN_PLUS_CRL_FILE
-        cat $ROOT_CA_CERT_FILE $ROOT_CA_CRL_FILE > $CA_CHAIN_PLUS_CRL_FILE
-        chmod 444 $CA_CHAIN_PLUS_CRL_FILE
+        touch "$CA_CHAIN_PLUS_CRL_FILE"
+        chmod 644 "$CA_CHAIN_PLUS_CRL_FILE"
+        cat "$ROOT_CA_CERT_FILE" "$ROOT_CA_CRL_FILE" > "$CA_CHAIN_PLUS_CRL_FILE"
+        chmod 444 "$CA_CHAIN_PLUS_CRL_FILE"
         echo :: CA chain file including CRL is:
-        ls $CA_CHAIN_PLUS_CRL_FILE
+        ls "$CA_CHAIN_PLUS_CRL_FILE"
         display_rc $? 0
     fi
 fi
