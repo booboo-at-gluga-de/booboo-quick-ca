@@ -29,12 +29,12 @@ jobs:
           - distro: 'debian:10'
             pre: >-
               apt-get update &&
-              DEBIAN_FRONTEND=noninteractive apt-get -y install shellcheck curl openssl shunit2 sudo
+              DEBIAN_FRONTEND=noninteractive apt-get -y install shellcheck curl openssl shunit2 sudo expect
           - distro: 'fedora:35'
             pre: >-
               dnf upgrade -y &&
               dnf install -y hostname &&
-              dnf install -y nmap ShellCheck curl openssl git shunit2 sudo
+              dnf install -y nmap ShellCheck curl openssl git shunit2 sudo findutils
 
 
     steps:
