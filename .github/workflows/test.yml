@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+
+  # Run tests for any PRs
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  ##############################################################################
+  # Linuxes
+
+  linux:
+    # The host should always be linux
+    runs-on: ubuntu-latest
+    name: Running tests on ${{ matrix.distro }}
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - 'debian:10'
+          - 'fedora:35'
+        include:
+          - distro: 'debian:10'
+            pre: >-
+              apt-get update &&
+              DEBIAN_FRONTEND=noninteractive apt-get -y install shellcheck curl openssl shunit2
+          - distro: 'fedora:35'
+            pre: >-
+              dnf upgrade -y &&
+              dnf install -y hostname &&
+              dnf install -y nmap ShellCheck curl openssl git shunit2
+
+
+    steps:
+
+      - name: Git clone repository
+        uses: actions/checkout@v2
+
+      - name: Run the tests on ${{ matrix.distro }}
+        env:
+          PRE: ${{ matrix.pre }}
+        run: |
+          echo $PRE > ./prep-cmd.sh
+          docker run --network host -w /booboo-quick-ca -v ${PWD}:/booboo-quick-ca ${{ matrix.distro }} \
+              /bin/sh -c 'sh ./prep-cmd.sh \
+              && uname -a \
+              && tests/unittest.sh'
