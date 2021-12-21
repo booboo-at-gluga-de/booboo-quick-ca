@@ -76,6 +76,8 @@ oneTimeSetUp() {
     utecho "${UNITTEST_COLOR}Preparing Working directory for unit tests in ${UNITTEST_WORKINGDIR}${NO_COLOR}"
     utecho ""
     cp -Rv ${CODE_BASE}/bin ${UNITTEST_WORKINGDIR}
+
+    CUSTOMER_CERT_DATE_EXTENSION=$(date +%Y-%m-%d)
 }
 
 
@@ -190,9 +192,54 @@ testIssuingCaCrl() {
     assertEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should be a CRL in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
-# @TODO: Tests to be implemented
-#chmod: cannot access '/tmp/tmp.NGS7jy0frN/ca_certs/ca_chain_plus_crl.cert.pem': No such file or directory
-#Verifying the Issuing CA file against the Root CA certificate...
+testVerifyIssuingCaAgainstRootCa() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Verifying the Issuing CA file against the Root CA certificate${NO_COLOR}"
+    utecho ""
+    openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/ca_certs/issuing_ca.cert.pem
+    EXIT_CODE=$?
+    assertEquals "Verify of Issuing CA file against Root CA certificate was unsuccessful. Return Code of openssl command" "0" "${EXIT_CODE}"
+}
+
+testCreateServerCert() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Running create_customer_cert.sh to create a Server Cert${NO_COLOR}"
+    utecho ""
+    cd ${UNITTEST_WORKINGDIR} || exit 1
+    ${CODE_BASE}/tests/create_customer_cert.sh.servercert.expect
+    cd ${CWD}
+
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem)
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
+}
+
+testServerCertKey() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Checking files created with the Server Cert${NO_COLOR}"
+    utecho ""
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem)
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem should be a RSA PRIVATE KEY in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
+}
+
+testServerCertDer() {
+    openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der -inform DER -noout
+    EXIT_CODE=$?
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der should be a Certificate in DER format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
+}
+
+testServerCertPkcs12() {
+    openssl pkcs12 -in ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 -nodes -passin pass:test123 >/dev/null
+    EXIT_CODE=$?
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 should be a Keystore in PKCS#12 format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
+}
+
+testServerCertJks() {
+    SEARCHCOUNT=$(echo test123 | keytool -list -keystore ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.2021-12-21.jks 2>/dev/null | grep -c PrivateKeyEntry)
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.jks should contain exactly 1 PrivateKeyEntry" "1" "${SEARCHCOUNT}"
+}
+
+# @TODO: verify cert against root CA
+
 
 #
 # run the Unit Tests with shunit2

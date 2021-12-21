@@ -1,0 +1,76 @@
+#!/usr/bin/expect -f
+
+# this is the expect script for running setup_CA.sh for the first time
+
+set timeout -1
+spawn bin/create_customer_cert.sh -u -n servercert.unittest.example.com
+
+# Creating Certificate Signing Request (CSR)...
+# Country Name (2 letter code) [DE]:
+expect "Country Name"
+send -- "\r"
+
+# State or Province Name [Gallien]:
+expect "State or Province Name"
+send -- "\r"
+
+# Locality Name [Gallisches Dorf]:
+expect "Locality Name"
+send -- "\r"
+
+# Organization Name [Die Gallier]:
+expect "Organization Name"
+send -- "\r"
+
+# Organizational Unit Name []:
+expect "Organizational Unit Name"
+send -- "\r"
+
+# Common Name [servercert.unittest.example.com]:
+expect "Common Name"
+send -- "\r"
+
+# Email Address [certificates@example.com]:
+expect "Email Address"
+send -- "\r"
+
+# Creating certificate...
+# Enter pass phrase for /tmp/tmp.G8EYYESzdk/ca_private_keys/issuing_ca.key.pem:
+expect "ca_private_keys/issuing_ca.key.pem:"
+send -- "test123\r"
+
+# Sign the certificate? [y/n]:y
+expect "Sign the certificate?"
+send -- "y\r"
+
+# 1 out of 1 certificate requests certified, commit? [y/n]y
+expect "1 out of 1 certificate requests certified, commit?"
+send -- "y\r"
+
+# Please verify your certificate and press ENTER if OK
+expect "Please verify your certificate and press ENTER if OK"
+send -- "\r"
+
+# Providing a complete keystore in PKCS12 format...
+# Enter Export Password:
+expect "Enter Export Password:"
+send -- "test123\r"
+
+# Verifying - Enter Export Password:
+expect "Verifying - Enter Export Password:"
+send -- "test123\r"
+
+# Providing a complete keystore in Java Keystore (jks) format...
+# Enter destination keystore password:
+expect "Enter destination keystore password:"
+send -- "test123\r"
+
+# Re-enter new password:
+expect "Re-enter new password:"
+send -- "test123\r"
+
+# Enter source keystore password:
+expect "Enter source keystore password:"
+send -- "test123\r"
+
+expect eof
