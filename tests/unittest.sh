@@ -142,6 +142,14 @@ testEditIssuingCaCrlDistributionPoint()
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg should ISSUING_CA_CRL_DISTRIBUTION_POINTS should contain an URL, but does not" "0" "${EXIT_CODE}"
 }
+testEditDisableJks()
+{
+    sed -i ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg -e 's/^CUSTOMER_CERT_CREATE_JKS="yes"/CUSTOMER_CERT_CREATE_JKS="no"/'
+
+    egrep '^CUSTOMER_CERT_CREATE_JKS="no"' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    EXIT_CODE=$?
+    assertEquals "Generating JKS keystores should be disabled in ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg for unit-tests, but seems not to. Return code" "0" "${EXIT_CODE}"
+}
 
 testRunSetupCaSecondTime() {
     utecho ""
@@ -231,11 +239,6 @@ testServerCertPkcs12() {
     openssl pkcs12 -in ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 -nodes -passin pass:test123 >/dev/null
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 should be a Keystore in PKCS#12 format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
-}
-
-testServerCertJks() {
-    SEARCHCOUNT=$(echo test123 | keytool -list -keystore ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.2021-12-21.jks 2>/dev/null | grep -c PrivateKeyEntry)
-    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.jks should contain exactly 1 PrivateKeyEntry" "1" "${SEARCHCOUNT}"
 }
 
 # @TODO: verify cert against root CA

@@ -60,17 +60,4 @@ send -- "test123\r"
 expect "Verifying - Enter Export Password:"
 send -- "test123\r"
 
-# Providing a complete keystore in Java Keystore (jks) format...
-# Enter destination keystore password:
-expect "Enter destination keystore password:"
-send -- "test123\r"
-
-# Re-enter new password:
-expect "Re-enter new password:"
-send -- "test123\r"
-
-# Enter source keystore password:
-expect "Enter source keystore password:"
-send -- "test123\r"
-
 expect eof
