@@ -242,6 +242,7 @@ testServerCertPkcs12() {
 }
 
 # @TODO: verify cert against root CA
+# @TDOD: create a cert with multiple SANs
 
 
 #
