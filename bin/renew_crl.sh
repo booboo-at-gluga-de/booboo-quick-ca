@@ -49,15 +49,17 @@ function help { # .-------------------------------------------------------
 }
 #.
 
-BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f "$(dirname "$0")/..")}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 CHECK_ONLY=0
 
-source $BOOBOO_QUICK_CA_BASE/bin/common_functions
+# shellcheck source=common_functions
+source "$BOOBOO_QUICK_CA_BASE/bin/common_functions"
 do_not_run_as_root
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
-    source $QUICK_CA_CFG_FILE
+    # shellcheck source=/dev/null
+    source "$QUICK_CA_CFG_FILE"
 fi
 
 hook_script pre
