@@ -300,6 +300,40 @@ testMultiSanCertContainsSan3() {
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:san3.example.com. Count" "1" "${SEARCHCOUNT}"
 }
 
+testRenewCrl() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Running renew_crl.sh${NO_COLOR}"
+    utecho ""
+    TIMESTAMP_ISSUING_CA_CRL_BEFORE=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem)
+    TIMESTAMP_ROOT_CA_CRL_BEFORE=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem)
+    utecho "TIMESTAMP_ISSUING_CA_CRL_BEFORE: ${TIMESTAMP_ISSUING_CA_CRL_BEFORE}"
+    utecho "TIMESTAMP_ROOT_CA_CRL_BEFORE: ${TIMESTAMP_ROOT_CA_CRL_BEFORE}"
+    sleep 1
+    cd ${UNITTEST_WORKINGDIR} || exit 1
+    ${CODE_BASE}/tests/renew_crl.sh.expect
+    EXIT_CODE=$?
+    cd ${CWD}
+
+    assertEquals "renew_crl.sh should execute without errors. Return Code" "0" "${EXIT_CODE}"
+}
+
+testIssuingCaCrlHasNewerTimestamp() {
+    utecho "TIMESTAMP_ISSUING_CA_CRL_BEFORE: ${TIMESTAMP_ISSUING_CA_CRL_BEFORE}"
+    TIMESTAMP_ISSUING_CA_CRL_AFTER=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem)
+    utecho "TIMESTAMP_ISSUING_CA_CRL_AFTER: ${TIMESTAMP_ISSUING_CA_CRL_AFTER}"
+
+    assertNotEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should now have a different modification time than before renwal." "${TIMESTAMP_ISSUING_CA_CRL_BEFORE}" "${TIMESTAMP_ISSUING_CA_CRL_AFTER}"
+}
+
+testRootCaCrlHasNewerTimestamp() {
+    utecho "TIMESTAMP_ROOT_CA_CRL_BEFORE: ${TIMESTAMP_ROOT_CA_CRL_BEFORE}"
+    TIMESTAMP_ROOT_CA_CRL_AFTER=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem)
+    utecho "TIMESTAMP_ROOT_CA_CRL_AFTER: ${TIMESTAMP_ROOT_CA_CRL_AFTER}"
+
+    assertNotEquals "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem should now have a different modification time than before renwal." "${TIMESTAMP_ROOT_CA_CRL_BEFORE}" "${TIMESTAMP_ROOT_CA_CRL_AFTER}"
+}
+
+
 #
 # run the Unit Tests with shunit2
 #

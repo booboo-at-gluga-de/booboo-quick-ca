@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+
+# this is the expect script for running setup_CA.sh for the first time
+
+set timeout -1
+spawn bin/renew_crl.sh
+
+# Creating a Certificate Revocation List (CRL) for the Root CA...
+# Enter pass phrase for /tmp/tmp.tvdRAiMLZ2/ca_private_keys/root_ca.key.pem:
+expect "root_ca.key.pem:"
+send -- "test123\r"
+
+# Creating a Certificate Revocation List (CRL) for the Issuing CA...
+# Enter pass phrase for /tmp/tmp.tvdRAiMLZ2/ca_private_keys/issuing_ca.key.pem:
+expect "issuing_ca.key.pem:"
+send -- "test123\r"
+
+expect eof
