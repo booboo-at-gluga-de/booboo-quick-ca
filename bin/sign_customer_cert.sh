@@ -86,17 +86,17 @@ fi
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
     source $QUICK_CA_CFG_FILE
 else
-    echo ::
-    echo -e :: ${HEADLINE_COLOR}No config file found in $QUICK_CA_CFG_FILE${NO_COLOR}
-    echo ::
-    echo :: Did you already setup your CA by using the setup_CA.sh script?
-    echo :: If no: Please do this first!
-    echo :: If yes: You probably gave a different base directory
-    echo :: \(not $BOOBOO_QUICK_CA_BASE\)
-    echo :: when running setup_CA.sh. Please set the BOOBOO_QUICK_CA_BASE
-    echo :: environment varible to the correct path, e. g. by calling
-    echo ::    BOOBOO_QUICK_CA_BASE=/path/to/base $0
-    echo ::
+    echo "::"
+    echo -e ":: ${HEADLINE_COLOR}No config file found in $QUICK_CA_CFG_FILE${NO_COLOR}"
+    echo "::"
+    echo ":: Did you already setup your CA by using the setup_CA.sh script?"
+    echo ":: If no: Please do this first!"
+    echo ":: If yes: You probably gave a different base directory"
+    echo ":: (not $BOOBOO_QUICK_CA_BASE)"
+    echo ":: when running setup_CA.sh. Please set the BOOBOO_QUICK_CA_BASE"
+    echo ":: environment varible to the correct path, e. g. by calling"
+    echo "::    BOOBOO_QUICK_CA_BASE=/path/to/base $0"
+    echo "::"
     exit 1
 fi
 
@@ -112,19 +112,19 @@ fi
 source $QUICK_CA_CFG_FILE
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}Checking for already existing files...${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}Checking for already existing files...${NO_COLOR}"
 echo ::
 for FILE in $CUSTOMER_CERT_CERT_FILE_PEM $CUSTOMER_CERT_CERT_FILE_DER; do
     if [[ -f $FILE ]]; then
-        echo :: $FILE already exists
+        echo ":: $FILE already exists"
         EXISTING_CONFIG_FILES=$(($EXISTING_CONFIG_FILES+1))
     fi
 done
 
 if [[ $EXISTING_CONFIG_FILES -gt 0 ]]; then
     echo ::
-    echo -e :: ${RED}Files for this certifcate already exist.${NO_COLOR}
-    echo :: If you want to setup a new one, please remove file\(s\) above.
+    echo -e ":: ${RED}Files for this certifcate already exist.${NO_COLOR}"
+    echo ":: If you want to setup a new one, please remove file(s) above."
     echo ::
     exit 1
 else
@@ -133,7 +133,7 @@ else
 fi
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}Creating certificate...${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}Creating certificate...${NO_COLOR}"
 echo ::
 # To create a certificate, use the issuing CA to sign the CSR.
 # If the certificate is going to be used on a server, use the server_cert
@@ -204,8 +204,8 @@ fi
 #V 160420124233Z 1000 unknown ... /CN=www.example.com
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}Please verify your new Certificate:${NO_COLOR}
-echo -e :: ${HEADLINE_COLOR}-----------------------------------${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}Please verify your new Certificate:${NO_COLOR}"
+echo -e ":: ${HEADLINE_COLOR}-----------------------------------${NO_COLOR}"
 echo ::
 
 openssl x509 -noout -text -in $CUSTOMER_CERT_CERT_FILE_PEM
@@ -222,7 +222,7 @@ read TMP
 # in the output.
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}Verifying the certificate against the CA...${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}Verifying the certificate against the CA...${NO_COLOR}"
 echo ::
 
 if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
@@ -237,7 +237,7 @@ display_rc $? 1
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Providing the certificate in DER format...${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Providing the certificate in DER format...${NO_COLOR}"
     echo ::
     openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER
     display_rc $? 0
@@ -252,8 +252,8 @@ fi
 # pkcs12 and jks can not be generated: For both we would need the private key of the customer cert.
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}What you got:${NO_COLOR}
-echo -e :: ${HEADLINE_COLOR}-------------${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}What you got:${NO_COLOR}"
+echo -e ":: ${HEADLINE_COLOR}-------------${NO_COLOR}"
 echo ::
 echo :: The certificate in PEM format:
 ls $CUSTOMER_CERT_CERT_FILE_PEM

@@ -776,6 +776,7 @@ END
     else
         CRL_CHECK_OPTION=
     fi
+    # shellcheck disable=SC2086   # CRL_CHECK_OPTION can really and by intend be empty
     openssl verify $CRL_CHECK_OPTION -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$ISSUING_CA_CERT_FILE_FULL"
     display_rc $? 1
 
