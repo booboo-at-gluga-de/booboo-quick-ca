@@ -34,17 +34,19 @@ function help { # .-------------------------------------------------------
 }
 #.
 
-BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f "$(dirname "$0")/..")}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 CERT_FILE=""
 CRL_CHECK_OPTION=""
 REVOKE_ISSUING_CA=0
 
-source $BOOBOO_QUICK_CA_BASE/bin/common_functions
+# shellcheck source=common_functions
+source "${BOOBOO_QUICK_CA_BASE}/bin/common_functions"
 do_not_run_as_root
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
-    source $QUICK_CA_CFG_FILE
+    # shellcheck source=/dev/null
+    source "$QUICK_CA_CFG_FILE"
 fi
 
 hook_script pre
@@ -80,7 +82,7 @@ fi
 if [[ $REVOKE_ISSUING_CA = 1 ]]; then
     if [[ $SEPARATE_ISSUING_CA != "yes" ]]; then
         echo ::
-        echo -e :: ${RED}You do not have a separate Issuing CA - unable to revoke it!${NO_COLOR}
+        echo -e :: "${RED}You do not have a separate Issuing CA - unable to revoke it!${NO_COLOR}"
         echo ::
         exit 1
     fi
@@ -88,36 +90,36 @@ if [[ $REVOKE_ISSUING_CA = 1 ]]; then
     OPENSSL_CNF_FILE=$ROOT_CA_OPENSSL_CNF_FILE
     CERT_FILE=$ISSUING_CA_CERT_FILE
 
-    if [[ ! -z "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    if [[ -n "$ROOT_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         CRL_CHECK_OPTION="-crl_check_all"
     fi
 else
     OPENSSL_CNF_FILE=$ISSUING_CA_OPENSSL_CNF_FILE
 
-    if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    if [[ -n "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
         CRL_CHECK_OPTION="-crl_check_all"
     fi
 fi
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}Revoking Certificate${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}Revoking Certificate${NO_COLOR}"
 echo ::
-openssl ca -config $OPENSSL_CNF_FILE -revoke $CERT_FILE
+openssl ca -config "$OPENSSL_CNF_FILE" -revoke "$CERT_FILE"
 display_rc $? 0
 
 echo ::
-echo -e :: ${HEADLINE_COLOR}Re-creating Certificate Revocation Lists${NO_COLOR}
+echo -e ":: ${HEADLINE_COLOR}Re-creating Certificate Revocation Lists${NO_COLOR}"
 echo ::
 create_crl_root_ca
 create_crl_issuing_ca
 
-if [[ ! -z $CRL_CHECK_OPTION ]]; then
+if [[ -n $CRL_CHECK_OPTION ]]; then
     echo ::
-    echo -e :: ${HEADLINE_COLOR}Verifying Certificate against trust chain${NO_COLOR}
+    echo -e ":: ${HEADLINE_COLOR}Verifying Certificate against trust chain${NO_COLOR}"
     echo :: expected message: certificate revoked
     echo ::
-    openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CERT_FILE
-    openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CERT_FILE | grep "lookup:certificate revoked" > /dev/null 2>/dev/null
+    openssl verify $CRL_CHECK_OPTION -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$CERT_FILE"
+    openssl verify $CRL_CHECK_OPTION -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$CERT_FILE" | grep "lookup:certificate revoked" > /dev/null 2>/dev/null
     display_rc $? 0
 fi
 
