@@ -147,6 +147,7 @@ fi
 umask 077
 RC=255
 while [[ $RC -ne 0 ]]; do
+    # shellcheck disable=SC2086   # CUSTOMER_CERT_PROTECT_OPTION can really and by intend be empty
     openssl genrsa $CUSTOMER_CERT_PROTECT_OPTION -out "$CUSTOMER_CERT_KEY_FILE" "$CUSTOMER_CERT_KEY_LENGTH"
     RC=$?
     [[ $RC -ne 0 ]] && echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
@@ -194,9 +195,9 @@ END
 
 # add all given SANs
 COUNTER=2
-for SAN in ${SUBJECT_ALTERNATE_NAMES[@]}; do
+for SAN in "${SUBJECT_ALTERNATE_NAMES[@]}"; do
     echo DNS.$COUNTER = "$SAN" >> "$TMP_OPENSSL_CNF_FILE"
-    COUNTER=$(( $COUNTER + 1 ))
+    COUNTER=$(( COUNTER + 1 ))
 done
 
 RC=255
@@ -261,6 +262,7 @@ fi
 
 # Use the CA certificate chain file we created earlier to verify that the new
 # certificate has a valid chain of trust.
+# shellcheck disable=SC2086   # CRL_CHECK_OPTION can really and by intend be empty
 openssl verify $CRL_CHECK_OPTION -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$CUSTOMER_CERT_CERT_FILE_PEM"
 display_rc $? 1
 
