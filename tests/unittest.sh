@@ -268,9 +268,37 @@ testCrlIssuingCaHasRevokedCert() {
     assertEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should contain 1 revoked certificate. Count" "1" "${SEARCHCOUNT}"
 }
 
-# @TODO: verify cert against root CA
-# @TDOD: create a cert with multiple SANs
+testCreateServerCertMultiSan() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Running create_customer_cert.sh to create a Server Cert with multiple SANs${NO_COLOR}"
+    utecho ""
+    cd ${UNITTEST_WORKINGDIR} || exit 1
+    ${CODE_BASE}/tests/create_customer_cert.sh.servercert.multi.san.expect
+    cd ${CWD}
 
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem)
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
+}
+
+testMultiSanCertContainsNameFromCn() {
+    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:multisan.unittest.example.com')
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:multisan.unittest.example.com. Count" "1" "${SEARCHCOUNT}"
+}
+
+testMultiSanCertContainsSan1() {
+    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:san1.example.com')
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:san1.example.com. Count" "1" "${SEARCHCOUNT}"
+}
+
+testMultiSanCertContainsSan2() {
+    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:san2.example.com')
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:san2.example.com. Count" "1" "${SEARCHCOUNT}"
+}
+
+testMultiSanCertContainsSan3() {
+    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:san3.example.com')
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:san3.example.com. Count" "1" "${SEARCHCOUNT}"
+}
 
 #
 # run the Unit Tests with shunit2
