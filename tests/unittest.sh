@@ -241,6 +241,33 @@ testServerCertPkcs12() {
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 should be a Keystore in PKCS#12 format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
+testServerCertVerifyAgainstCaAndCrl() {
+    openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem
+    EXIT_CODE=$?
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be able to be verified against CA and CRL, but is not. Return Code of openssl command" "0" "${EXIT_CODE}"
+}
+
+testRevokeServerCert() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Running revoke.sh to revoke the Server Cert${NO_COLOR}"
+    utecho ""
+    cp ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.cert.pem
+    cd ${UNITTEST_WORKINGDIR} || exit 1
+    ${CODE_BASE}/tests/revoke.sh.servercert.expect
+    cd ${CWD}
+
+    SEARCHCOUNT=$(openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem 2>&1 | grep -c "certificate revoked")
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should report to be revoked, but seems not to be. Count" "1" "${SEARCHCOUNT}"
+}
+
+testCrlIssuingCaHasRevokedCert() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}CRL should contain one entry${NO_COLOR}"
+    utecho ""
+    SEARCHCOUNT=$(openssl crl -in ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem -noout -text | grep -A 1 "Serial Number:" | grep -c "Revocation Date:")
+    assertEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should contain 1 revoked certificate. Count" "1" "${SEARCHCOUNT}"
+}
+
 # @TODO: verify cert against root CA
 # @TDOD: create a cert with multiple SANs
 

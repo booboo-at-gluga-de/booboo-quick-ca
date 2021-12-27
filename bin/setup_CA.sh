@@ -776,7 +776,7 @@ END
     else
         CRL_CHECK_OPTION=
     fi
-    openssl verify "$CRL_CHECK_OPTION" -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$ISSUING_CA_CERT_FILE_FULL"
+    openssl verify $CRL_CHECK_OPTION -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$ISSUING_CA_CERT_FILE_FULL"
     display_rc $? 1
 
 else
