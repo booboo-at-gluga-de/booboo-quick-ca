@@ -110,6 +110,11 @@ for OPTION in "$@"; do
                     # (echo an empty string for password prompt)
                     echo | keytool -list -keystore "$FILE"
                     ;;
+                'Certificate, Version=3')
+                    display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
+                    display_header
+                    openssl x509 -noout -text -inform DER -in "$FILE"
+                    ;;
                 'data')
                     display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
                     if [[ $EXTENSION = "p12" ]]; then
