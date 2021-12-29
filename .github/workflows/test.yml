@@ -57,4 +57,4 @@ jobs:
               && echo ================== \
               && echo \
               && cd bin \
-              && if command -v shellcheck > /dev/null 2>&1; then shellcheck -x *; else echo "Skipped on this platform"; fi'
+              && if command -v shellcheck > /dev/null 2>&1; then shellcheck -x * && echo "OK"; else echo "Skipped on this platform"; fi'
