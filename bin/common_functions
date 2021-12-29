@@ -251,7 +251,7 @@ function hook_script { # .------------------------------------------------.
     if [[ $HOOK = "pre" ]] || [[ $HOOK = "post" ]]; then
         if [[ -n "$HOOK_SCRIPT" ]]; then
             if [[ -x "$HOOK_SCRIPT" ]]; then
-                $HOOK_SCRIPT $HOOK $(basename $0)
+                $HOOK_SCRIPT "$HOOK" "$(basename "$0")"
                 HOOK_RC=$?
 
                 if [[ $HOOK_RC -ne 0 ]]; then
