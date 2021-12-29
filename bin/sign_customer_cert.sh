@@ -36,14 +36,14 @@ function help { # .-------------------------------------------------------
 }
 #.
 
-BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f "$(dirname "$0")/..")}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 EXISTING_CONFIG_FILES=0
-HAVE_KEYTOOL=1
 CUSTOMER_CERT_TYPE="server_cert"
 DEVIANT_CERT_FILENAME=0
 
-source $BOOBOO_QUICK_CA_BASE/bin/common_functions
+# shellcheck source=common_functions
+source "${BOOBOO_QUICK_CA_BASE}/bin/common_functions"
 do_not_run_as_root
 
 # .-- command line options -----------------------------------------------
@@ -77,14 +77,15 @@ fi
 
 if [[ ! -f $CUSTOMER_CERT_CSR_FILE_COMMANDLINE ]]; then
     echo
-    echo $CUSTOMER_CERT_CSR_FILE_COMMANDLINE is not a valid file!
+    echo "$CUSTOMER_CERT_CSR_FILE_COMMANDLINE is not a valid file!"
     help
     exit 1
 fi
 #.
 
 if [[ -f $QUICK_CA_CFG_FILE ]]; then
-    source $QUICK_CA_CFG_FILE
+    # shellcheck source=/dev/null
+    source "$QUICK_CA_CFG_FILE"
 else
     echo "::"
     echo -e ":: ${HEADLINE_COLOR}No config file found in $QUICK_CA_CFG_FILE${NO_COLOR}"
@@ -102,14 +103,15 @@ fi
 
 hook_script pre
 
-CUSTOMER_CERT_CN=$(openssl req -text -noout -in $CUSTOMER_CERT_CSR_FILE_COMMANDLINE | grep "Subject: " | perl -e '$in=<STDIN>; if ( $in =~ m/CN *= *([^\/,]+)/ ) { print "$1\n" } else  { print "none\n" }')
+CUSTOMER_CERT_CN=$(openssl req -text -noout -in "$CUSTOMER_CERT_CSR_FILE_COMMANDLINE" | grep "Subject: " | perl -e '$in=<STDIN>; if ( $in =~ m/CN *= *([^\/,]+)/ ) { print "$1\n" } else  { print "none\n" }')
 if [[ $CUSTOMER_CERT_CN = "none" ]]; then
-    SERIAL=$(cat $ISSUING_CA_SERIAL_FILE)
+    SERIAL=$(cat "$ISSUING_CA_SERIAL_FILE")
     CUSTOMER_CERT_CN="CERT_$SERIAL"
 fi
 
 # source config file once again because some filenames base on CUSTOMER_CERT_CN
-source $QUICK_CA_CFG_FILE
+# shellcheck source=/dev/null
+source "$QUICK_CA_CFG_FILE"
 
 echo ::
 echo -e ":: ${HEADLINE_COLOR}Checking for already existing files...${NO_COLOR}"
@@ -117,7 +119,7 @@ echo ::
 for FILE in $CUSTOMER_CERT_CERT_FILE_PEM $CUSTOMER_CERT_CERT_FILE_DER; do
     if [[ -f $FILE ]]; then
         echo ":: $FILE already exists"
-        EXISTING_CONFIG_FILES=$(($EXISTING_CONFIG_FILES+1))
+        EXISTING_CONFIG_FILES=$(( EXISTING_CONFIG_FILES + 1 ))
     fi
 done
 
@@ -140,15 +142,15 @@ echo ::
 # extension. If the certificate is going to be used for user authentication,
 # use the usr_cert extension.
 
-TMP_OPENSSL_CNF_FILE=$(mktemp --tmpdir=$BOOBOO_QUICK_CA_BASE/tmp --suffix=.cnf openssl.XXX)
-cp $ISSUING_CA_OPENSSL_CNF_FILE $TMP_OPENSSL_CNF_FILE
-sed -i -e "s/^ *commonName_default *=.*/commonName_default              =$CUSTOMER_CERT_CN/" $TMP_OPENSSL_CNF_FILE
+TMP_OPENSSL_CNF_FILE=$(mktemp --tmpdir="$BOOBOO_QUICK_CA_BASE/tmp" --suffix=.cnf openssl.XXX)
+cp "$ISSUING_CA_OPENSSL_CNF_FILE" "$TMP_OPENSSL_CNF_FILE"
+sed -i -e "s/^ *commonName_default *=.*/commonName_default              =$CUSTOMER_CERT_CN/" "$TMP_OPENSSL_CNF_FILE"
 
 #
 # set crlDistributionPoints (if configured)
 #
-if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
-    sed -i -e "s#^ *\# *crlDistributionPoints *=.*#crlDistributionPoints              =$ISSUING_CA_CRL_DISTRIBUTION_POINTS#" $TMP_OPENSSL_CNF_FILE
+if [[ -n "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+    sed -i -e "s#^ *\# *crlDistributionPoints *=.*#crlDistributionPoints              =$ISSUING_CA_CRL_DISTRIBUTION_POINTS#" "$TMP_OPENSSL_CNF_FILE"
 fi
 
 # if issuing a client certificate and CN is a eMail address:
@@ -156,14 +158,14 @@ fi
 # (not only in the CN field) if USE_MAIL_ADDRESS_FOR_CN_AND_EMAIL
 # is set to yes in booboo-quick-ca.cfg
 if [[ $USE_MAIL_ADDRESS_FOR_CN_AND_EMAIL = "yes" ]]; then
-    if [[ $(echo $CUSTOMER_CERT_CN | egrep "^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$" | wc -l) -gt 0 ]]; then
+    if [[ $(echo "$CUSTOMER_CERT_CN" | grep -E -c "^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$") -gt 0 ]]; then
         # CN seems to be a valid eMail address
-        sed -i -e "s/^ *emailAddress_default *=.*/emailAddress_default            =$CUSTOMER_CERT_CN/" $TMP_OPENSSL_CNF_FILE
+        sed -i -e "s/^ *emailAddress_default *=.*/emailAddress_default            =$CUSTOMER_CERT_CN/" "$TMP_OPENSSL_CNF_FILE"
     fi
 fi
 
 # put SANs into the temporary config file
-cat >> $TMP_OPENSSL_CNF_FILE <<END
+cat >> "$TMP_OPENSSL_CNF_FILE" <<END
 
 [alt_names_customer_cert]
 DNS.1 = $CUSTOMER_CERT_CN
@@ -171,32 +173,32 @@ END
 
 # add all given SANs
 COUNTER=2
-for SAN in ${SUBJECT_ALTERNATE_NAMES[@]}; do
-    echo DNS.$COUNTER = $SAN >> $TMP_OPENSSL_CNF_FILE
-    COUNTER=$(( $COUNTER + 1 ))
+for SAN in "${SUBJECT_ALTERNATE_NAMES[@]}"; do
+    echo DNS.$COUNTER = "$SAN" >> "$TMP_OPENSSL_CNF_FILE"
+    COUNTER=$(( COUNTER + 1 ))
 done
 
 RC=255
 while [[ $RC -ne 0 ]]; do
-    openssl ca -config $TMP_OPENSSL_CNF_FILE -extensions ${CUSTOMER_CERT_TYPE} \
-        -days $CUSTOMER_CERT_LIFE_TIME -notext -md sha256 -in $CUSTOMER_CERT_CSR_FILE_COMMANDLINE \
-        -out $CUSTOMER_CERT_CERT_FILE_PEM
+    openssl ca -config "$TMP_OPENSSL_CNF_FILE" -extensions ${CUSTOMER_CERT_TYPE} \
+        -days "$CUSTOMER_CERT_LIFE_TIME" -notext -md sha256 -in "$CUSTOMER_CERT_CSR_FILE_COMMANDLINE" \
+        -out "$CUSTOMER_CERT_CERT_FILE_PEM"
     RC=$?
-    [[ $RC -ne 0 ]] && echo -e :: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}
+    [[ $RC -ne 0 ]] && echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
 done
-chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM
+chmod 444 "$CUSTOMER_CERT_CERT_FILE_PEM"
 
-rm $TMP_OPENSSL_CNF_FILE
+rm "$TMP_OPENSSL_CNF_FILE"
 
 # provide PEM file also under a name based on the CSR filename
 # (which is important for retrieving it by http)
-CSR_BASENAME=$(basename $CUSTOMER_CERT_CSR_FILE_COMMANDLINE .csr)
+CSR_BASENAME=$(basename "$CUSTOMER_CERT_CSR_FILE_COMMANDLINE" .csr)
 CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME="${CUSTOMER_CERT_DIR}/${CSR_BASENAME}.cert.pem"
 CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME="${CUSTOMER_CERT_DIR}/${CSR_BASENAME}.cert.der"
-if [[ $CUSTOMER_CERT_CERT_FILE_PEM != $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME ]]; then
+if [[ $CUSTOMER_CERT_CERT_FILE_PEM != "$CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME" ]]; then
     DEVIANT_CERT_FILENAME=1
-    cp $CUSTOMER_CERT_CERT_FILE_PEM $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME
-    chmod 444 $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME
+    cp "$CUSTOMER_CERT_CERT_FILE_PEM" "$CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME"
+    chmod 444 "$CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME"
 fi
 
 # The $ISSUING_CA_INDEX_FILE  file should contain a line referring to this new certificate.
@@ -208,11 +210,11 @@ echo -e ":: ${HEADLINE_COLOR}Please verify your new Certificate:${NO_COLOR}"
 echo -e ":: ${HEADLINE_COLOR}-----------------------------------${NO_COLOR}"
 echo ::
 
-openssl x509 -noout -text -in $CUSTOMER_CERT_CERT_FILE_PEM
+openssl x509 -noout -text -in "$CUSTOMER_CERT_CERT_FILE_PEM"
 
 echo ::
 echo -n ":: Please verify your certificate and press ENTER if OK "
-read TMP
+IFS= read -r _
 
 # The Issuer is the issuing CA. The Subject refers to the certificate itself.
 #
@@ -225,27 +227,27 @@ echo ::
 echo -e ":: ${HEADLINE_COLOR}Verifying the certificate against the CA...${NO_COLOR}"
 echo ::
 
-if [[ ! -z "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
+if [[ -n "$ISSUING_CA_CRL_DISTRIBUTION_POINTS" ]]; then
     CRL_CHECK_OPTION="-crl_check_all"
 else
     CRL_CHECK_OPTION=
 fi
 # Use the CA certificate chain file we created earlier to verify that the new
 # certificate has a valid chain of trust.
-openssl verify $CRL_CHECK_OPTION -CAfile $CA_CHAIN_PLUS_CRL_FILE $CUSTOMER_CERT_CERT_FILE_PEM
+openssl verify $CRL_CHECK_OPTION -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$CUSTOMER_CERT_CERT_FILE_PEM"
 display_rc $? 1
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo ::
     echo -e ":: ${HEADLINE_COLOR}Providing the certificate in DER format...${NO_COLOR}"
     echo ::
-    openssl x509 -in $CUSTOMER_CERT_CERT_FILE_PEM -inform PEM -out $CUSTOMER_CERT_CERT_FILE_DER -outform DER
+    openssl x509 -in "$CUSTOMER_CERT_CERT_FILE_PEM" -inform PEM -out "$CUSTOMER_CERT_CERT_FILE_DER" -outform DER
     display_rc $? 0
-    chmod 444 $CUSTOMER_CERT_CERT_FILE_DER
+    chmod 444 "$CUSTOMER_CERT_CERT_FILE_DER"
 
     if [[ $DEVIANT_CERT_FILENAME -ne 0 ]]; then
-        cp $CUSTOMER_CERT_CERT_FILE_DER $CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME
-        chmod 444 $CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME
+        cp "$CUSTOMER_CERT_CERT_FILE_DER" "$CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME"
+        chmod 444 "$CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME"
     fi
 fi
 
@@ -256,24 +258,24 @@ echo -e ":: ${HEADLINE_COLOR}What you got:${NO_COLOR}"
 echo -e ":: ${HEADLINE_COLOR}-------------${NO_COLOR}"
 echo ::
 echo :: The certificate in PEM format:
-ls $CUSTOMER_CERT_CERT_FILE_PEM
+ls "$CUSTOMER_CERT_CERT_FILE_PEM"
 display_rc $? 0
 
 if [[ $DEVIANT_CERT_FILENAME -ne 0 ]]; then
     echo :: This file can also been found under:
-    ls $CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME
+    ls "$CUSTOMER_CERT_CERT_FILE_PEM_BASED_ON_FILENAME"
     display_rc $? 0
 fi
 echo ::
 
 if [[ $CUSTOMER_CERT_CREATE_DER = "yes" ]]; then
     echo :: The certificate in DER format \(as an alternative\):
-    ls $CUSTOMER_CERT_CERT_FILE_DER
+    ls "$CUSTOMER_CERT_CERT_FILE_DER"
     display_rc $? 0
 
     if [[ $DEVIANT_CERT_FILENAME -ne 0 ]]; then
         echo :: This file can also been found under:
-        ls $CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME
+        ls "$CUSTOMER_CERT_CERT_FILE_DER_BASED_ON_FILENAME"
         display_rc $? 0
     fi
     echo ::
