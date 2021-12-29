@@ -425,6 +425,16 @@ testShowSslFileCrl() {
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should display one revoked certificate. Count" "1" "${SEARCHCOUNT}"
 }
 
+testShowSslFileCrlMinusN() {
+    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -n ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -n ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should display one revoked certificate. Count" "1" "${SEARCHCOUNT}"
+}
+
+testShowSslFileCrlMinusP() {
+    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -p ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -p ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should display one revoked certificate. Count" "1" "${SEARCHCOUNT}"
+}
+
 
 #
 # run the Unit Tests with shunit2

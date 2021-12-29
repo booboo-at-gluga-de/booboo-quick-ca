@@ -45,16 +45,17 @@ function display_header { # .---------------------------------------------
 }
 #.
 
-BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f $(dirname $0)/..)}
+BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f "$(dirname "$0")/..")}
 DISPLAY_HEADERS=1
-source $BOOBOO_QUICK_CA_BASE/bin/common_functions
+# shellcheck source=common_functions
+source "${BOOBOO_QUICK_CA_BASE}/bin/common_functions"
 
 if [[ -z "$1" ]] || [[ "$1" = "-h" ]]; then
     help
     exit 0
 fi
 
-for OPTION in $*; do
+for OPTION in "$@"; do
     case "$OPTION" in
         # OPTION may be a parameter...
         '-n')
@@ -75,39 +76,39 @@ for OPTION in $*; do
             display_header
             display_header "${HEADLINE_COLOR}$FILE${NO_COLOR}"
             if [[ ! -f $FILE ]] && [[ ! -L $FILE ]]; then
-                echo -e :: ${RED}$FILE is not a regular file${NO_COLOR}
+                echo -e ":: ${RED}$FILE is not a regular file${NO_COLOR}"
                 continue
             fi
             EXTENSION="${FILE##*.}"
             if [[ -L $FILE ]]; then
-                LINK=$(LANG=C file -b $FILE)
+                LINK=$(LANG=C file -b "$FILE")
                 display_header "$LINK"
-                FILE=$(readlink -f $FILE)
+                FILE=$(readlink -f "$FILE")
             fi
-            TYPE=$(LANG=C file -b $FILE)
+            TYPE=$(LANG=C file -b "$FILE")
 
             case "$TYPE" in
                 'PEM certificate')
                     display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
                     display_header
-                    openssl x509 -noout -text -in $FILE
+                    openssl x509 -noout -text -in "$FILE"
                     ;;
                 'PEM certificate request')
                     display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
                     display_header
-                    openssl req -text -noout -in $FILE
+                    openssl req -text -noout -in "$FILE"
                     ;;
                 'PEM RSA private key')
                     display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
                     display_header
-                    cat $FILE
+                    cat "$FILE"
                     ;;
                 'Java KeyStore')
                     display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
                     display_header
                     # list keystore content only
                     # (echo an empty string for password prompt)
-                    echo | keytool -list -keystore $FILE
+                    echo | keytool -list -keystore "$FILE"
                     ;;
                 'data')
                     display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
@@ -115,12 +116,12 @@ for OPTION in $*; do
                         display_header "Filename extension: ${GREEN}$EXTENSION${NO_COLOR}"
                         display_header "Trying to read as PKCS12 keystore"
                         display_header
-                        openssl pkcs12 -in $FILE -nodes
+                        openssl pkcs12 -in "$FILE" -nodes
                     elif [[ $EXTENSION = "der" ]] || [[ $EXTENSION = "cer" ]]; then
                         display_header "Filename extension: ${GREEN}$EXTENSION${NO_COLOR}"
                         display_header "Trying to read as DER format"
                         display_header
-                        openssl x509 -noout -text -inform DER -in $FILE
+                        openssl x509 -noout -text -inform DER -in "$FILE"
                     else
                         display_header "Filename extension: ${ORANGE}$TYPE${NO_COLOR}"
                         display_header "${ORANGE}unknown how to handle${NO_COLOR}"
@@ -128,13 +129,13 @@ for OPTION in $*; do
                     ;;
                 'ASCII text')
                     display_header "Type: ${GREEN}$TYPE${NO_COLOR}"
-                    if [[ $(grep -c '\-----BEGIN X509 CRL-----' $FILE) -gt 0 ]]; then
+                    if [[ $(grep -c '\-----BEGIN X509 CRL-----' "$FILE") -gt 0 ]]; then
                         display_header "Trying to read as CRL"
                         display_header
-                        openssl crl -text -noout -in $FILE
+                        openssl crl -text -noout -in "$FILE"
                     else
                         display_header
-                        cat $FILE
+                        cat "$FILE"
                     fi
                     ;;
                 'empty')
