@@ -52,4 +52,8 @@ jobs:
               && uname -a \
               && useradd -m quickca \
               && sudo -u quickca tests/unittest.sh \
-              && shellcheck --source-path=bin -x bin/*'
+              && echo Running Shellcheck \
+              && echo ================== \
+              && echo \
+              && cd bin \
+              && shellcheck -x bin/*'
