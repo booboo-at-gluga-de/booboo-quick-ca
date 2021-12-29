@@ -234,6 +234,7 @@ else
 fi
 # Use the CA certificate chain file we created earlier to verify that the new
 # certificate has a valid chain of trust.
+# shellcheck disable=SC2086   # CRL_CHECK_OPTION can really and by intend be empty
 openssl verify $CRL_CHECK_OPTION -CAfile "$CA_CHAIN_PLUS_CRL_FILE" "$CUSTOMER_CERT_CERT_FILE_PEM"
 display_rc $? 1
 

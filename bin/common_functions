@@ -93,11 +93,12 @@ function create_crl_root_ca { # .------------------------------------------.
             echo :: Using credential from environment \(QUICK_CA_ROOT_CA_CREDENTIAL\)
             ROOT_CA_CREDENTIAL_OPTION="-passin env:QUICK_CA_ROOT_CA_CREDENTIAL"
         else
-            ROOT_CA_CREDENTIAL_OPTION=""
+            ROOT_CA_CREDENTIAL_OPTION=
         fi
 
         RC=255
         while [[ $RC -ne 0 ]]; do
+            # shellcheck disable=SC2086   # ROOT_CA_CREDENTIAL_OPTION can really and by intend be empty
             openssl ca -config "$ROOT_CA_OPENSSL_CNF_FILE" -gencrl -out "$ROOT_CA_CRL_FILE" $ROOT_CA_CREDENTIAL_OPTION
             RC=$?
             if [[ $RC -ne 0 ]]; then
@@ -105,7 +106,7 @@ function create_crl_root_ca { # .------------------------------------------.
                     echo -e ":: ${ORANGE}WARNING: This did not work. Retrying...${NO_COLOR}"
                 else
                     echo -e ":: ${ORANGE}WARNING: This did not work. Retrying without QUICK_CA_ROOT_CA_CREDENTIAL...${NO_COLOR}"
-                    ROOT_CA_CREDENTIAL_OPTION=""
+                    ROOT_CA_CREDENTIAL_OPTION=
                 fi
             fi
         done
@@ -147,11 +148,12 @@ function create_crl_issuing_ca { # .---------------------------------------.
             echo :: Using credential from environment \(QUICK_CA_ISSUING_CA_CREDENTIAL\)
             ISSUING_CA_CREDENTIAL_OPTION="-passin env:QUICK_CA_ISSUING_CA_CREDENTIAL"
         else
-            ISSUING_CA_CREDENTIAL_OPTION=""
+            ISSUING_CA_CREDENTIAL_OPTION=
         fi
 
         RC=255
         while [[ $RC -ne 0 ]]; do
+            # shellcheck disable=SC2086   # ISSUING_CA_CREDENTIAL_OPTION can really and by intend be empty
             openssl ca -config "$ISSUING_CA_OPENSSL_CNF_FILE" -gencrl -out "$ISSUING_CA_CRL_FILE" $ISSUING_CA_CREDENTIAL_OPTION
             RC=$?
             if [[ $RC -ne 0 ]]; then
