@@ -22,7 +22,9 @@
 
 # .-- color definitions ----------------------------------------------------.
 HEADLINE_COLOR='\033[1;34m'
+# shellcheck disable=SC2034  # Used in tests/unittest.sh only
 UNITTEST_COLOR='\033[1;36m'
+# shellcheck disable=SC2034  # Used in tests/unittest.sh only
 UNITTEST_MARKER_COLOR='\033[0;36m'
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -54,11 +56,10 @@ function logical_symlink { # .---------------------------------------------.
         rm -f "$LINK_SOURCE"
     fi
 
-    if [[ $DIRNAME_LINK_DEST = $DIRNAME_LINK_SOURCE ]]; then
+    if [[ $DIRNAME_LINK_DEST = "$DIRNAME_LINK_SOURCE" ]]; then
         echo ":: in $DIRNAME_LINK_DEST symlinking $BASENAME_LINK_SOURCE -> $BASENAME_LINK_DEST"
-        cd "$DIRNAME_LINK_DEST"
-        ln -s "$BASENAME_LINK_DEST" "$BASENAME_LINK_SOURCE"
-        cd - >/dev/null
+        ( cd "$DIRNAME_LINK_DEST" || exit 1
+        ln -s "$BASENAME_LINK_DEST" "$BASENAME_LINK_SOURCE" )
     else
         echo ":: symlinking $LINK_SOURCE -> $LINK_DEST"
         ln -s "$LINK_DEST" "$LINK_SOURCE"
