@@ -1,5 +1,6 @@
  * add a script for just validating a certificate against the CA and maybe CRL
  * enhance sign_customer_cert.sh to accept additional SAN's from commandline
+   see https://www.golinuxcloud.com/openssl-subject-alternative-name/
  * create a stable branch, documentation on how to use it in README
  * show_ssl_file.sh: if handling multi-part pem files like ca_certs/ca_chain_plus_crl.cert.pem: display contents of all parts
  * make different CA directory (not next to bin directory) possible

@@ -333,6 +333,57 @@ testRootCaCrlHasNewerTimestamp() {
     assertNotEquals "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem should now have a different modification time than before renwal." "${TIMESTAMP_ROOT_CA_CRL_BEFORE}" "${TIMESTAMP_ROOT_CA_CRL_AFTER}"
 }
 
+testSignCustomerCert() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Testing sign_customer_cert.sh${NO_COLOR}"
+    utecho ""
+    # generate key
+    openssl genrsa -out "${UNITTEST_WORKINGDIR}/tmp/signonly.key.pem" 2048
+    # generate csr
+    cp "${UNITTEST_WORKINGDIR}/ca_config/issuing_ca_openssl.cnf" "${UNITTEST_WORKINGDIR}/tmp/openssl.signonly.cnf"
+    # SANs from CSR are not taken over to the Certificate, see https://www.golinuxcloud.com/openssl-subject-alternative-name/
+#    sed -i -e "s/^ *commonName_default *=.*/commonName_default              =signonly.unittest.example.com/" "${UNITTEST_WORKINGDIR}/tmp/openssl.signonly.cnf"
+#    sed -i -e "s#^ *\# *crlDistributionPoints *=.*#crlDistributionPoints              =URI:http://example.com/issuing_ca.crl.pem#" "${UNITTEST_WORKINGDIR}/tmp/openssl.signonly.cnf"
+#
+#    cat >> "${UNITTEST_WORKINGDIR}/tmp/openssl.signonly.cnf" <<END
+#
+#[ req ]
+#req_extensions = req_ext
+#
+#[req_ext]
+#subjectAltName = @alt_names_customer_cert
+#
+#[alt_names_customer_cert]
+#DNS.1 = signonly.unittest.example.com
+#DNS.2 = san4.example.com
+#DNS.3 = san5.example.com
+#END
+
+    openssl req -config "${UNITTEST_WORKINGDIR}/tmp/openssl.signonly.cnf" -key "${UNITTEST_WORKINGDIR}/tmp/signonly.key.pem" -new -sha256 -out "${UNITTEST_WORKINGDIR}/tmp/signonly.csr" -subj "/C=DE/ST=Gallien/L=Gallisches Dorf/O=Die Gallier/CN=signonly.unittest.example.com/emailAddress=certificates@example.com"
+
+    cd ${UNITTEST_WORKINGDIR} || exit 1
+    ${CODE_BASE}/tests/sign_customer_cert.sh.expect
+    cd ${CWD}
+
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem)
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
+}
+
+testSignOnlyCertDer() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Checking files created with sign_customer_cert.sh${NO_COLOR}"
+    utecho ""
+    openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der -inform DER -noout
+    EXIT_CODE=$?
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der should be a Certificate in DER format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
+}
+
+testSignOnlyCertVerifyAgainstCaAndCrl() {
+    openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem
+    EXIT_CODE=$?
+    assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be able to be verified against CA and CRL, but is not. Return Code of openssl command" "0" "${EXIT_CODE}"
+}
+
 
 #
 # run the Unit Tests with shunit2

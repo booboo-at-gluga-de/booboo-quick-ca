@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+# this is the expect script for running setup_CA.sh for the first time
+
+set timeout -1
+spawn bin/sign_customer_cert.sh -f tmp/signonly.csr
+
+# Creating certificate...
+# Enter pass phrase for /tmp/tmp.8fou8uJwlq/ca_private_keys/issuing_ca.key.pem:
+expect "issuing_ca.key.pem:"
+send -- "test123\r"
+
+# Sign the certificate? [y/n]:y
+expect "Sign the certificate?"
+send -- "y\r"
+
+# 1 out of 1 certificate requests certified, commit? [y/n]y
+expect "1 out of 1 certificate requests certified, commit?"
+send -- "y\r"
+
+# Please verify your certificate and press ENTER if OK
+expect "Please verify your certificate and press ENTER if OK"
+send -- "\r"
+
+expect eof
