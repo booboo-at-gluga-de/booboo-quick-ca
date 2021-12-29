@@ -384,6 +384,47 @@ testSignOnlyCertVerifyAgainstCaAndCrl() {
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be able to be verified against CA and CRL, but is not. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
+testShowSslFileHelp() {
+    utecho ""
+    utecho "${UNITTEST_COLOR}Checking show_ssl_file.sh${NO_COLOR}"
+    utecho ""
+    CMDOUT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -h | grep '<FILE>')
+    assertNotNull "show_ssl_file.sh -h should contain the string '<FILE>'" "${CMDOUT}"
+}
+
+testShowSslFileCertPem() {
+    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
+}
+
+testShowSslFileCertDer() {
+    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
+}
+
+testShowSslFileCertP12() {
+    cp ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.p12
+    cd ${UNITTEST_WORKINGDIR} || exit 1
+    SEARCHCOUNT=$(${CODE_BASE}/tests/show_ssl_file.sh-p12.expect | grep -c 'subject=C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+    cd ${CWD}
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.p12 should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
+}
+
+testShowSslFilePrivateKey() {
+    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem | grep -c "\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-")
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem should display a private key, but seems not to. Count" "1" "${SEARCHCOUNT}"
+}
+
+testShowSslFileCsr() {
+    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/csr/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.csr | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/csr/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.csr should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
+}
+
+testShowSslFileCrl() {
+    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
+    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should display one revoked certificate. Count" "1" "${SEARCHCOUNT}"
+}
+
 
 #
 # run the Unit Tests with shunit2

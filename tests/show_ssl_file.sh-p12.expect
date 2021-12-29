@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+
+# this is the expect script for running setup_CA.sh for the first time
+
+set timeout -1
+spawn bin/show_ssl_file.sh customer_certs/multisan.unittest.example.com.p12
+
+expect "Enter Import Password:"
+send -- "test123\r"
+
+expect eof
