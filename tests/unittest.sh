@@ -77,6 +77,18 @@ oneTimeSetUp() {
     utecho ""
     cp -Rv ${CODE_BASE}/bin ${UNITTEST_WORKINGDIR}
 
+    # prepare hook script for unit tests
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for create_customer_cert.sh\"#this file was created by pre script hook for create_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for create_customer_cert.sh\"#this file was created by post script hook for create_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for renew_crl.sh\"#this file was created by pre script hook for renew_crl.sh\" >${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for renew_crl.sh\"#this file was created by post script hook for renew_crl.sh\" >${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for revoke.sh\"#this file was created by pre script hook for revoke.sh\" >${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for revoke.sh\"#this file was created by post script hook for revoke.sh\" >${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for setup_CA.sh\"#this file was created by pre script hook for setup_CA.sh\" >${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for setup_CA.sh\"#this file was created by post script hook for setup_CA.sh\" >${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for sign_customer_cert.sh\"#this file was created by pre script hook for sign_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre#"
+    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for sign_customer_cert.sh\"#this file was created by post script hook for sign_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post#"
+
     CUSTOMER_CERT_DATE_EXTENSION=$(date +%Y-%m-%d)
 }
 
@@ -132,7 +144,7 @@ testEditRootCaCrlDistributionPoint() {
 
     egrep '^ROOT_CA_CRL_DISTRIBUTION_POINTS="URI:http' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
     EXIT_CODE=$?
-    assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg should ROOT_CA_CRL_DISTRIBUTION_POINTS should contain an URL, but does not" "0" "${EXIT_CODE}"
+    assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg: ROOT_CA_CRL_DISTRIBUTION_POINTS should contain an URL, but does not" "0" "${EXIT_CODE}"
 }
 testEditIssuingCaCrlDistributionPoint()
 {
@@ -140,7 +152,7 @@ testEditIssuingCaCrlDistributionPoint()
 
     egrep '^ISSUING_CA_CRL_DISTRIBUTION_POINTS="URI:http' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
     EXIT_CODE=$?
-    assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg should ISSUING_CA_CRL_DISTRIBUTION_POINTS should contain an URL, but does not" "0" "${EXIT_CODE}"
+    assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg: ISSUING_CA_CRL_DISTRIBUTION_POINTS should contain an URL, but does not" "0" "${EXIT_CODE}"
 }
 testEditDisableJks()
 {
@@ -149,6 +161,13 @@ testEditDisableJks()
     egrep '^CUSTOMER_CERT_CREATE_JKS="no"' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
     EXIT_CODE=$?
     assertEquals "Generating JKS keystores should be disabled in ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg for unit-tests, but seems not to. Return code" "0" "${EXIT_CODE}"
+}
+testEditEnableHookScript() {
+    sed -i ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg -e 's/# HOOK_SCRIPT=/HOOK_SCRIPT=/'
+
+    egrep '^HOOK_SCRIPT=' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    EXIT_CODE=$?
+    assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg: HOOK_SCRIPT should point to a script, but does not" "0" "${EXIT_CODE}"
 }
 
 testRunSetupCaSecondTime() {
@@ -180,6 +199,17 @@ testRootCaCertificate() {
 testRootCaCrl() {
     SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN X509 CRL\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem)
     assertEquals "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem should be a CRL in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
+}
+
+testHookScriptSetupCaPre() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre
+    EXIT_CODE=$?
+    assertEquals "Pre Hook for setup_CA.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre - return code" "0" "${EXIT_CODE}"
+}
+testHookScriptSetupCaPost() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post
+    EXIT_CODE=$?
+    assertEquals "Post Hook for setup_CA.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post - return code" "0" "${EXIT_CODE}"
 }
 
 testIssuingCaPrivateKey() {
@@ -247,6 +277,17 @@ testServerCertVerifyAgainstCaAndCrl() {
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be able to be verified against CA and CRL, but is not. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
+testHookScriptCreateCustomerCertPre() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre
+    EXIT_CODE=$?
+    assertEquals "Pre Hook for create_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre - return code" "0" "${EXIT_CODE}"
+}
+testHookScriptCreateCustomerCertPost() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post
+    EXIT_CODE=$?
+    assertEquals "Post Hook for create_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post - return code" "0" "${EXIT_CODE}"
+}
+
 testRevokeServerCert() {
     utecho ""
     utecho "${UNITTEST_COLOR}Running revoke.sh to revoke the Server Cert${NO_COLOR}"
@@ -266,6 +307,17 @@ testCrlIssuingCaHasRevokedCert() {
     utecho ""
     SEARCHCOUNT=$(openssl crl -in ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem -noout -text | grep -A 1 "Serial Number:" | grep -c "Revocation Date:")
     assertEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should contain 1 revoked certificate. Count" "1" "${SEARCHCOUNT}"
+}
+
+testHookScriptRevokePre() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre
+    EXIT_CODE=$?
+    assertEquals "Pre Hook for revoke.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre - return code" "0" "${EXIT_CODE}"
+}
+testHookScriptRevokePost() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post
+    EXIT_CODE=$?
+    assertEquals "Post Hook for revoke.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post - return code" "0" "${EXIT_CODE}"
 }
 
 testCreateServerCertMultiSan() {
@@ -333,6 +385,17 @@ testRootCaCrlHasNewerTimestamp() {
     assertNotEquals "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem should now have a different modification time than before renwal." "${TIMESTAMP_ROOT_CA_CRL_BEFORE}" "${TIMESTAMP_ROOT_CA_CRL_AFTER}"
 }
 
+testHookScriptRenewCrlPre() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre
+    EXIT_CODE=$?
+    assertEquals "Pre Hook for renew_crl.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre - return code" "0" "${EXIT_CODE}"
+}
+testHookScriptRenewCrlPost() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post
+    EXIT_CODE=$?
+    assertEquals "Post Hook for renew_crl.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post - return code" "0" "${EXIT_CODE}"
+}
+
 testSignCustomerCert() {
     utecho ""
     utecho "${UNITTEST_COLOR}Testing sign_customer_cert.sh${NO_COLOR}"
@@ -382,6 +445,17 @@ testSignOnlyCertVerifyAgainstCaAndCrl() {
     openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be able to be verified against CA and CRL, but is not. Return Code of openssl command" "0" "${EXIT_CODE}"
+}
+
+testHookScriptSignCustomerCertPre() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre
+    EXIT_CODE=$?
+    assertEquals "Pre Hook for sign_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre - return code" "0" "${EXIT_CODE}"
+}
+testHookScriptSignCustomerCertPost() {
+    test -f ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post
+    EXIT_CODE=$?
+    assertEquals "Post Hook for sign_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post - return code" "0" "${EXIT_CODE}"
 }
 
 testShowSslFileHelp() {
