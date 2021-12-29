@@ -472,6 +472,7 @@ testShowSslFileCertPem() {
 }
 
 testShowSslFileCertDer() {
+    ${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der
     SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
 }
