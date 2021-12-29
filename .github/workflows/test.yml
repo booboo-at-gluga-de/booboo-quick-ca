@@ -51,4 +51,5 @@ jobs:
               /bin/sh -c 'sh ./prep-cmd.sh \
               && uname -a \
               && useradd -m quickca \
-              && sudo -u quickca tests/unittest.sh'
+              && sudo -u quickca tests/unittest.sh \
+              && shellcheck --source-path=bin -x bin/*'
