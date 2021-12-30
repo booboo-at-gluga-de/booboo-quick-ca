@@ -21,12 +21,12 @@
 # If it exits with return code 0, at least basic functionallity of
 # BooBoo Quick CA is given.
 
-CODE_BASE=${CODE_BASE:-$(readlink -f $(dirname $0)/..)}
-CWD=$(pwd)
+CODE_BASE=${CODE_BASE:-$(readlink -f "$(dirname "$0")/..")}
 SIGNALS="HUP INT QUIT TERM ABRT"
 LC_ALL=C
 
-source ${CODE_BASE}/bin/common_functions
+# shellcheck source=/dev/null
+source "${CODE_BASE}/bin/common_functions"
 do_not_run_as_root
 
 
@@ -41,7 +41,7 @@ cleanup_temp_files() {
     # KEEP_TMP=1
     # before calling the script
     if [[ ${KEEP_TMP} -eq 0 ]]; then
-        rm -Rf ${UNITTEST_WORKINGDIR}
+        rm -Rf "${UNITTEST_WORKINGDIR}"
     else
         utecho ""
         utecho "Keeping working directory in ${UNITTEST_WORKINGDIR} - please care for removing it yourself"
@@ -54,7 +54,7 @@ cleanup_temp_files() {
 oneTimeTearDown() {
     # Cleanup before program termination
     # Using named signals to be POSIX compliant
-    cleanup_temp_files ${SIGNALS}
+    cleanup_temp_files "${SIGNALS}"
 }
 
 function utecho() {
@@ -70,24 +70,23 @@ oneTimeSetUp() {
     utecho "Base directory for you CA is ${CODE_BASE}"
 
     UNITTEST_WORKINGDIR=$(mktemp -d)
-    BOOBOO_QUICK_CA_BASE=${UNITTEST_WORKINGDIR}
 
     utecho ""
     utecho "${UNITTEST_COLOR}Preparing Working directory for unit tests in ${UNITTEST_WORKINGDIR}${NO_COLOR}"
     utecho ""
-    cp -Rv ${CODE_BASE}/bin ${UNITTEST_WORKINGDIR}
+    cp -Rv "${CODE_BASE}/bin" "${UNITTEST_WORKINGDIR}"
 
     # prepare hook script for unit tests
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for create_customer_cert.sh\"#this file was created by pre script hook for create_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for create_customer_cert.sh\"#this file was created by post script hook for create_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for renew_crl.sh\"#this file was created by pre script hook for renew_crl.sh\" >${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for renew_crl.sh\"#this file was created by post script hook for renew_crl.sh\" >${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for revoke.sh\"#this file was created by pre script hook for revoke.sh\" >${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for revoke.sh\"#this file was created by post script hook for revoke.sh\" >${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for setup_CA.sh\"#this file was created by pre script hook for setup_CA.sh\" >${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for setup_CA.sh\"#this file was created by post script hook for setup_CA.sh\" >${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: pre script hook for sign_customer_cert.sh\"#this file was created by pre script hook for sign_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre#"
-    sed -i ${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh -e "s#::: post script hook for sign_customer_cert.sh\"#this file was created by post script hook for sign_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: pre script hook for create_customer_cert.sh\"#this file was created by pre script hook for create_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: post script hook for create_customer_cert.sh\"#this file was created by post script hook for create_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: pre script hook for renew_crl.sh\"#this file was created by pre script hook for renew_crl.sh\" >${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: post script hook for renew_crl.sh\"#this file was created by post script hook for renew_crl.sh\" >${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: pre script hook for revoke.sh\"#this file was created by pre script hook for revoke.sh\" >${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: post script hook for revoke.sh\"#this file was created by post script hook for revoke.sh\" >${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: pre script hook for setup_CA.sh\"#this file was created by pre script hook for setup_CA.sh\" >${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: post script hook for setup_CA.sh\"#this file was created by post script hook for setup_CA.sh\" >${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: pre script hook for sign_customer_cert.sh\"#this file was created by pre script hook for sign_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre#"
+    sed -i "${UNITTEST_WORKINGDIR}/bin/hook_script_sample.sh" -e "s#::: post script hook for sign_customer_cert.sh\"#this file was created by post script hook for sign_customer_cert.sh\" >${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post#"
 
     CUSTOMER_CERT_DATE_EXTENSION=$(date +%Y-%m-%d)
 }
@@ -127,11 +126,12 @@ testRunSetupCaFirstTime() {
     utecho ""
     utecho "${UNITTEST_COLOR}Running setup_CA.sh (first execution)${NO_COLOR}"
     utecho ""
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    ${CODE_BASE}/tests/setup_CA.sh.1.expect
-    cd ${CWD}
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        "${CODE_BASE}/tests/setup_CA.sh.1.expect"
+    )
 
-    test -f ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    test -f "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg"
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg has not been created" "0" "${EXIT_CODE}"
 }
@@ -140,32 +140,32 @@ testEditRootCaCrlDistributionPoint() {
     utecho ""
     utecho "${UNITTEST_COLOR}Editing booboo-quick-ca.cfg${NO_COLOR}"
     utecho ""
-    sed -i ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg -e 's/^ROOT_CA_CRL_DISTRIBUTION_POINTS=/ROOT_CA_CRL_DISTRIBUTION_POINTS="URI:http:\/\/example.com\/root_ca.crl.pem"/'
+    sed -i "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg" -e 's/^ROOT_CA_CRL_DISTRIBUTION_POINTS=/ROOT_CA_CRL_DISTRIBUTION_POINTS="URI:http:\/\/example.com\/root_ca.crl.pem"/'
 
-    egrep '^ROOT_CA_CRL_DISTRIBUTION_POINTS="URI:http' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    grep -E '^ROOT_CA_CRL_DISTRIBUTION_POINTS="URI:http' "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg"
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg: ROOT_CA_CRL_DISTRIBUTION_POINTS should contain an URL, but does not" "0" "${EXIT_CODE}"
 }
 testEditIssuingCaCrlDistributionPoint()
 {
-    sed -i ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg -e 's/^ISSUING_CA_CRL_DISTRIBUTION_POINTS=/ISSUING_CA_CRL_DISTRIBUTION_POINTS="URI:http:\/\/example.com\/issuing_ca.crl.pem"/'
+    sed -i "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg" -e 's/^ISSUING_CA_CRL_DISTRIBUTION_POINTS=/ISSUING_CA_CRL_DISTRIBUTION_POINTS="URI:http:\/\/example.com\/issuing_ca.crl.pem"/'
 
-    egrep '^ISSUING_CA_CRL_DISTRIBUTION_POINTS="URI:http' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    grep -E '^ISSUING_CA_CRL_DISTRIBUTION_POINTS="URI:http' "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg"
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg: ISSUING_CA_CRL_DISTRIBUTION_POINTS should contain an URL, but does not" "0" "${EXIT_CODE}"
 }
 testEditDisableJks()
 {
-    sed -i ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg -e 's/^CUSTOMER_CERT_CREATE_JKS="yes"/CUSTOMER_CERT_CREATE_JKS="no"/'
+    sed -i "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg" -e 's/^CUSTOMER_CERT_CREATE_JKS="yes"/CUSTOMER_CERT_CREATE_JKS="no"/'
 
-    egrep '^CUSTOMER_CERT_CREATE_JKS="no"' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    grep -E '^CUSTOMER_CERT_CREATE_JKS="no"' "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg"
     EXIT_CODE=$?
     assertEquals "Generating JKS keystores should be disabled in ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg for unit-tests, but seems not to. Return code" "0" "${EXIT_CODE}"
 }
 testEditEnableHookScript() {
-    sed -i ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg -e 's/# HOOK_SCRIPT=/HOOK_SCRIPT=/'
+    sed -i "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg" -e 's/# HOOK_SCRIPT=/HOOK_SCRIPT=/'
 
-    egrep '^HOOK_SCRIPT=' ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    grep -E '^HOOK_SCRIPT=' "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg"
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg: HOOK_SCRIPT should point to a script, but does not" "0" "${EXIT_CODE}"
 }
@@ -174,11 +174,12 @@ testRunSetupCaSecondTime() {
     utecho ""
     utecho "${UNITTEST_COLOR}Running setup_CA.sh (second execution)${NO_COLOR}"
     utecho ""
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    ${CODE_BASE}/tests/setup_CA.sh.2.expect
-    cd ${CWD}
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        "${CODE_BASE}/tests/setup_CA.sh.2.expect"
+    )
 
-    test -f ${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg
+    test -f "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg"
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/ca_config/booboo-quick-ca.cfg has not been created" "0" "${EXIT_CODE}"
 }
@@ -187,27 +188,27 @@ testRootCaPrivateKey() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking Root CA${NO_COLOR}"
     utecho ""
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/ca_private_keys/root_ca.key.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_private_keys/root_ca.key.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/ca_private_keys/root_ca.key.pem should be a RSA PRIVATE KEY in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
 testRootCaCertificate() {
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/ca_certs/root_ca.cert.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_certs/root_ca.cert.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/ca_certs/root_ca.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
 testRootCaCrl() {
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN X509 CRL\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN X509 CRL\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem should be a CRL in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
 testHookScriptSetupCaPre() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre
+    test -f "${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre"
     EXIT_CODE=$?
     assertEquals "Pre Hook for setup_CA.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.pre - return code" "0" "${EXIT_CODE}"
 }
 testHookScriptSetupCaPost() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post
+    test -f "${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post"
     EXIT_CODE=$?
     assertEquals "Post Hook for setup_CA.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/setup_CA.sh.post - return code" "0" "${EXIT_CODE}"
 }
@@ -216,17 +217,17 @@ testIssuingCaPrivateKey() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking Issuing CA${NO_COLOR}"
     utecho ""
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/ca_private_keys/issuing_ca.key.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_private_keys/issuing_ca.key.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/ca_private_keys/issuing_ca.key.pem should be a RSA PRIVATE KEY in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
 testIssuingCaCertificate() {
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/ca_certs/issuing_ca.cert.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_certs/issuing_ca.cert.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/ca_certs/issuing_ca.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
 testIssuingCaCrl() {
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN X509 CRL\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN X509 CRL\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should be a CRL in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
@@ -234,7 +235,7 @@ testVerifyIssuingCaAgainstRootCa() {
     utecho ""
     utecho "${UNITTEST_COLOR}Verifying the Issuing CA file against the Root CA certificate${NO_COLOR}"
     utecho ""
-    openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/ca_certs/issuing_ca.cert.pem
+    openssl verify -crl_check_all -CAfile "${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem" "${UNITTEST_WORKINGDIR}/ca_certs/issuing_ca.cert.pem"
     EXIT_CODE=$?
     assertEquals "Verify of Issuing CA file against Root CA certificate was unsuccessful. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
@@ -243,11 +244,12 @@ testCreateServerCert() {
     utecho ""
     utecho "${UNITTEST_COLOR}Running create_customer_cert.sh to create a Server Cert${NO_COLOR}"
     utecho ""
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    ${CODE_BASE}/tests/create_customer_cert.sh.servercert.expect
-    cd ${CWD}
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        "${CODE_BASE}/tests/create_customer_cert.sh.servercert.expect"
+    )
 
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
@@ -255,35 +257,35 @@ testServerCertKey() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking files created with the Server Cert${NO_COLOR}"
     utecho ""
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem should be a RSA PRIVATE KEY in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
 testServerCertDer() {
-    openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der -inform DER -noout
+    openssl x509 -in "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der" -inform DER -noout
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der should be a Certificate in DER format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
 testServerCertPkcs12() {
-    openssl pkcs12 -in ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 -nodes -passin pass:test123 >/dev/null
+    openssl pkcs12 -in "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12" -nodes -passin pass:test123 >/dev/null
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 should be a Keystore in PKCS#12 format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
 testServerCertVerifyAgainstCaAndCrl() {
-    openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem
+    openssl verify -crl_check_all -CAfile "${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem" "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem"
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be able to be verified against CA and CRL, but is not. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
 testHookScriptCreateCustomerCertPre() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre
+    test -f "${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre"
     EXIT_CODE=$?
     assertEquals "Pre Hook for create_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.pre - return code" "0" "${EXIT_CODE}"
 }
 testHookScriptCreateCustomerCertPost() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post
+    test -f "${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post"
     EXIT_CODE=$?
     assertEquals "Post Hook for create_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/create_customer_cert.sh.post - return code" "0" "${EXIT_CODE}"
 }
@@ -292,12 +294,13 @@ testRevokeServerCert() {
     utecho ""
     utecho "${UNITTEST_COLOR}Running revoke.sh to revoke the Server Cert${NO_COLOR}"
     utecho ""
-    cp ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.cert.pem
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    ${CODE_BASE}/tests/revoke.sh.servercert.expect
-    cd ${CWD}
+    cp "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem" "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.cert.pem"
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        "${CODE_BASE}/tests/revoke.sh.servercert.expect"
+    )
 
-    SEARCHCOUNT=$(openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem 2>&1 | grep -c "certificate revoked")
+    SEARCHCOUNT=$(openssl verify -crl_check_all -CAfile "${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem" "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem" 2>&1 | grep -c "certificate revoked")
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should report to be revoked, but seems not to be. Count" "1" "${SEARCHCOUNT}"
 }
 
@@ -305,17 +308,17 @@ testCrlIssuingCaHasRevokedCert() {
     utecho ""
     utecho "${UNITTEST_COLOR}CRL should contain one entry${NO_COLOR}"
     utecho ""
-    SEARCHCOUNT=$(openssl crl -in ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem -noout -text | grep -A 1 "Serial Number:" | grep -c "Revocation Date:")
+    SEARCHCOUNT=$(openssl crl -in "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem" -noout -text | grep -A 1 "Serial Number:" | grep -c "Revocation Date:")
     assertEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should contain 1 revoked certificate. Count" "1" "${SEARCHCOUNT}"
 }
 
 testHookScriptRevokePre() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre
+    test -f "${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre"
     EXIT_CODE=$?
     assertEquals "Pre Hook for revoke.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.pre - return code" "0" "${EXIT_CODE}"
 }
 testHookScriptRevokePost() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post
+    test -f "${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post"
     EXIT_CODE=$?
     assertEquals "Post Hook for revoke.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/revoke.sh.post - return code" "0" "${EXIT_CODE}"
 }
@@ -324,31 +327,32 @@ testCreateServerCertMultiSan() {
     utecho ""
     utecho "${UNITTEST_COLOR}Running create_customer_cert.sh to create a Server Cert with multiple SANs${NO_COLOR}"
     utecho ""
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    ${CODE_BASE}/tests/create_customer_cert.sh.servercert.multi.san.expect
-    cd ${CWD}
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        "${CODE_BASE}/tests/create_customer_cert.sh.servercert.multi.san.expect"
+    )
 
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
 testMultiSanCertContainsNameFromCn() {
-    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:multisan.unittest.example.com')
+    SEARCHCOUNT=$(openssl x509 -in "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem" -noout -text | grep -c 'DNS:multisan.unittest.example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:multisan.unittest.example.com. Count" "1" "${SEARCHCOUNT}"
 }
 
 testMultiSanCertContainsSan1() {
-    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:san1.example.com')
+    SEARCHCOUNT=$(openssl x509 -in "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem" -noout -text | grep -c 'DNS:san1.example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:san1.example.com. Count" "1" "${SEARCHCOUNT}"
 }
 
 testMultiSanCertContainsSan2() {
-    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:san2.example.com')
+    SEARCHCOUNT=$(openssl x509 -in "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem" -noout -text | grep -c 'DNS:san2.example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:san2.example.com. Count" "1" "${SEARCHCOUNT}"
 }
 
 testMultiSanCertContainsSan3() {
-    SEARCHCOUNT=$(openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem -noout -text | grep -c 'DNS:san3.example.com')
+    SEARCHCOUNT=$(openssl x509 -in "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem" -noout -text | grep -c 'DNS:san3.example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should contain DNS:san3.example.com. Count" "1" "${SEARCHCOUNT}"
 }
 
@@ -356,22 +360,23 @@ testRenewCrl() {
     utecho ""
     utecho "${UNITTEST_COLOR}Running renew_crl.sh${NO_COLOR}"
     utecho ""
-    TIMESTAMP_ISSUING_CA_CRL_BEFORE=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem)
-    TIMESTAMP_ROOT_CA_CRL_BEFORE=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem)
+    TIMESTAMP_ISSUING_CA_CRL_BEFORE=$(stat --format=%Y "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem")
+    TIMESTAMP_ROOT_CA_CRL_BEFORE=$(stat --format=%Y "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem")
     utecho "TIMESTAMP_ISSUING_CA_CRL_BEFORE: ${TIMESTAMP_ISSUING_CA_CRL_BEFORE}"
     utecho "TIMESTAMP_ROOT_CA_CRL_BEFORE: ${TIMESTAMP_ROOT_CA_CRL_BEFORE}"
     sleep 1
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    ${CODE_BASE}/tests/renew_crl.sh.expect
-    EXIT_CODE=$?
-    cd ${CWD}
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        "${CODE_BASE}/tests/renew_crl.sh.expect"
+        EXIT_CODE=$?
 
-    assertEquals "renew_crl.sh should execute without errors. Return Code" "0" "${EXIT_CODE}"
+        assertEquals "renew_crl.sh should execute without errors. Return Code" "0" "${EXIT_CODE}"
+    )
 }
 
 testIssuingCaCrlHasNewerTimestamp() {
     utecho "TIMESTAMP_ISSUING_CA_CRL_BEFORE: ${TIMESTAMP_ISSUING_CA_CRL_BEFORE}"
-    TIMESTAMP_ISSUING_CA_CRL_AFTER=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem)
+    TIMESTAMP_ISSUING_CA_CRL_AFTER=$(stat --format=%Y "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem")
     utecho "TIMESTAMP_ISSUING_CA_CRL_AFTER: ${TIMESTAMP_ISSUING_CA_CRL_AFTER}"
 
     assertNotEquals "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should now have a different modification time than before renwal." "${TIMESTAMP_ISSUING_CA_CRL_BEFORE}" "${TIMESTAMP_ISSUING_CA_CRL_AFTER}"
@@ -379,19 +384,19 @@ testIssuingCaCrlHasNewerTimestamp() {
 
 testRootCaCrlHasNewerTimestamp() {
     utecho "TIMESTAMP_ROOT_CA_CRL_BEFORE: ${TIMESTAMP_ROOT_CA_CRL_BEFORE}"
-    TIMESTAMP_ROOT_CA_CRL_AFTER=$(stat --format=%Y ${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem)
+    TIMESTAMP_ROOT_CA_CRL_AFTER=$(stat --format=%Y "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem")
     utecho "TIMESTAMP_ROOT_CA_CRL_AFTER: ${TIMESTAMP_ROOT_CA_CRL_AFTER}"
 
     assertNotEquals "${UNITTEST_WORKINGDIR}/crl/root_ca.crl.pem should now have a different modification time than before renwal." "${TIMESTAMP_ROOT_CA_CRL_BEFORE}" "${TIMESTAMP_ROOT_CA_CRL_AFTER}"
 }
 
 testHookScriptRenewCrlPre() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre
+    test -f "${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre"
     EXIT_CODE=$?
     assertEquals "Pre Hook for renew_crl.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.pre - return code" "0" "${EXIT_CODE}"
 }
 testHookScriptRenewCrlPost() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post
+    test -f "${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post"
     EXIT_CODE=$?
     assertEquals "Post Hook for renew_crl.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/renew_crl.sh.post - return code" "0" "${EXIT_CODE}"
 }
@@ -424,11 +429,12 @@ testSignCustomerCert() {
 
     openssl req -config "${UNITTEST_WORKINGDIR}/tmp/openssl.signonly.cnf" -key "${UNITTEST_WORKINGDIR}/tmp/signonly.key.pem" -new -sha256 -out "${UNITTEST_WORKINGDIR}/tmp/signonly.csr" -subj "/C=DE/ST=Gallien/L=Gallisches Dorf/O=Die Gallier/CN=signonly.unittest.example.com/emailAddress=certificates@example.com"
 
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    ${CODE_BASE}/tests/sign_customer_cert.sh.expect
-    cd ${CWD}
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        "${CODE_BASE}/tests/sign_customer_cert.sh.expect"
+    )
 
-    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' ${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem)
+    SEARCHCOUNT=$(grep -c '\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be a CERTIFICATE in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
@@ -436,24 +442,24 @@ testSignOnlyCertDer() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking files created with sign_customer_cert.sh${NO_COLOR}"
     utecho ""
-    openssl x509 -in ${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der -inform DER -noout
+    openssl x509 -in "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der" -inform DER -noout
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der should be a Certificate in DER format, but seems not to be. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
 testSignOnlyCertVerifyAgainstCaAndCrl() {
-    openssl verify -crl_check_all -CAfile ${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem ${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem
+    openssl verify -crl_check_all -CAfile "${UNITTEST_WORKINGDIR}/ca_certs/ca_chain_plus_crl.cert.pem" "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem"
     EXIT_CODE=$?
     assertEquals "${UNITTEST_WORKINGDIR}/customer_certs/signonly.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should be able to be verified against CA and CRL, but is not. Return Code of openssl command" "0" "${EXIT_CODE}"
 }
 
 testHookScriptSignCustomerCertPre() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre
+    test -f "${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre"
     EXIT_CODE=$?
     assertEquals "Pre Hook for sign_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.pre - return code" "0" "${EXIT_CODE}"
 }
 testHookScriptSignCustomerCertPost() {
-    test -f ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post
+    test -f "${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post"
     EXIT_CODE=$?
     assertEquals "Post Hook for sign_customer_cert.sh should have been executed, but was not: no file ${UNITTEST_WORKINGDIR}/tmp/sign_customer_cert.sh.post - return code" "0" "${EXIT_CODE}"
 }
@@ -462,51 +468,52 @@ testShowSslFileHelp() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking show_ssl_file.sh${NO_COLOR}"
     utecho ""
-    CMDOUT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -h | grep '<FILE>')
+    CMDOUT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" -h | grep '<FILE>')
     assertNotNull "show_ssl_file.sh -h should contain the string '<FILE>'" "${CMDOUT}"
 }
 
 testShowSslFileCertPem() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem" | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.pem should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
 }
 
 testShowSslFileCertDer() {
-    ${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+    "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der"
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der" | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.cert.der should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
 }
 
 testShowSslFileCertP12() {
-    cp ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12 ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.p12
-    cd ${UNITTEST_WORKINGDIR} || exit 1
-    SEARCHCOUNT=$(${CODE_BASE}/tests/show_ssl_file.sh-p12.expect | grep -c 'subject=C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
-    cd ${CWD}
-    assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.p12 should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
+    cp "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.p12" "${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.p12"
+    (
+        cd "${UNITTEST_WORKINGDIR}" || fail "unable to change to ${UNITTEST_WORKINGDIR}"
+        SEARCHCOUNT=$("${CODE_BASE}/tests/show_ssl_file.sh-p12.expect" | grep -c 'subject=C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+        assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_certs/multisan.unittest.example.com.p12 should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
+    )
 }
 
 testShowSslFilePrivateKey() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem | grep -c "\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-")
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem" | grep -c "\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-")
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem should display a private key, but seems not to. Count" "1" "${SEARCHCOUNT}"
 }
 
 testShowSslFileCsr() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/csr/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.csr | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/csr/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.csr" | grep -c 'Subject: C = DE, ST = Gallien, L = Gallisches Dorf, O = Die Gallier, CN = multisan.unittest.example.com, emailAddress = certificates@example.com')
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/csr/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.csr should display a certain subject, but seems not to. Count" "1" "${SEARCHCOUNT}"
 }
 
 testShowSslFileCrl() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem" | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should display one revoked certificate. Count" "1" "${SEARCHCOUNT}"
 }
 
 testShowSslFileCrlMinusN() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -n ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" -n "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem" | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -n ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should display one revoked certificate. Count" "1" "${SEARCHCOUNT}"
 }
 
 testShowSslFileCrlMinusP() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -p ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" -p "${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem" | grep -A 1 "Revoked Certificates:" | grep -c "Serial Number:")
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh -p ${UNITTEST_WORKINGDIR}/crl/issuing_ca.crl.pem should display one revoked certificate. Count" "1" "${SEARCHCOUNT}"
 }
 
@@ -514,4 +521,5 @@ testShowSslFileCrlMinusP() {
 #
 # run the Unit Tests with shunit2
 #
+# shellcheck source=/dev/null
 . "${SHUNIT2}"
