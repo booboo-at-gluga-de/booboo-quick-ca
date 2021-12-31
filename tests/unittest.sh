@@ -48,6 +48,7 @@ cleanup_temp_files() {
         utecho ""
     fi
 
+    # shellcheck disable=SC2086   # SIGNALS contains multiple signals and SHOULD be splitted
     trap - ${SIGNALS}
 }
 
