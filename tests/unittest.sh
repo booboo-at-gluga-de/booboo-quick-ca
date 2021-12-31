@@ -91,6 +91,9 @@ oneTimeSetUp() {
     CUSTOMER_CERT_DATE_EXTENSION=$(date +%Y-%m-%d)
 }
 
+setUp() {
+    echo -en "${UNITTEST_PREFIX_COLOR}Evaluating:${NO_COLOR} "
+}
 
 #
 # Check Prereq's
