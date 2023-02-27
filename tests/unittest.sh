@@ -192,7 +192,7 @@ testRootCaPrivateKey() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking Root CA${NO_COLOR}"
     utecho ""
-    SEARCHCOUNT=$(egrep -c '\-\-\-\-\-BEGIN (RSA|ENCRYPTED) PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_private_keys/root_ca.key.pem")
+    SEARCHCOUNT=$(grep -E -c '\-\-\-\-\-BEGIN (RSA|ENCRYPTED) PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_private_keys/root_ca.key.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/ca_private_keys/root_ca.key.pem should be a PRIVATE KEY in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
@@ -221,7 +221,7 @@ testIssuingCaPrivateKey() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking Issuing CA${NO_COLOR}"
     utecho ""
-    SEARCHCOUNT=$(egrep -c '\-\-\-\-\-BEGIN (RSA|ENCRYPTED) PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_private_keys/issuing_ca.key.pem")
+    SEARCHCOUNT=$(grep -E -c '\-\-\-\-\-BEGIN (RSA|ENCRYPTED) PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/ca_private_keys/issuing_ca.key.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/ca_private_keys/issuing_ca.key.pem should be a PRIVATE KEY in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
@@ -261,7 +261,7 @@ testServerCertKey() {
     utecho ""
     utecho "${UNITTEST_COLOR}Checking files created with the Server Cert${NO_COLOR}"
     utecho ""
-    SEARCHCOUNT=$(egrep -c '\-\-\-\-\-BEGIN (RSA )?PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem")
+    SEARCHCOUNT=$(grep -E -c '\-\-\-\-\-BEGIN (RSA )?PRIVATE KEY\-\-\-\-\-' "${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem")
     assertEquals "${UNITTEST_WORKINGDIR}/customer_private_keys/servercert.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem should be a PRIVATE KEY in PEM format, but seems not to be" "1" "${SEARCHCOUNT}"
 }
 
@@ -406,17 +406,17 @@ testHookScriptRenewCrlPost() {
 }
 
 testRenewCrlMinusC() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/renew_crl.sh -c | grep -c 'CRL ok! Valid until')
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/renew_crl.sh" -c | grep -c 'CRL ok! Valid until')
     assertEquals "${UNITTEST_WORKINGDIR}/bin/renew_crl.sh -c should report 2 CRLs with status CRL ok. Count" "2" "${SEARCHCOUNT}"
 }
 
 testRenewCrlMinusCR() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/renew_crl.sh -c -r | grep -c 'CRL ok! Valid until')
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/renew_crl.sh" -c -r | grep -c 'CRL ok! Valid until')
     assertEquals "${UNITTEST_WORKINGDIR}/bin/renew_crl.sh -c -r should report 1 CRL with status CRL ok. Count" "1" "${SEARCHCOUNT}"
 }
 
 testRenewCrlMinusCI() {
-    SEARCHCOUNT=$(${UNITTEST_WORKINGDIR}/bin/renew_crl.sh -c -i | grep -c 'CRL ok! Valid until')
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/renew_crl.sh" -c -i | grep -c 'CRL ok! Valid until')
     assertEquals "${UNITTEST_WORKINGDIR}/bin/renew_crl.sh -c -i should report 1 CRL with status CRL ok. Count" "1" "${SEARCHCOUNT}"
 }
 
@@ -512,7 +512,7 @@ testShowSslFileCertP12() {
 }
 
 testShowSslFilePrivateKey() {
-    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem" | egrep -c "\-\-\-\-\-BEGIN (RSA )?PRIVATE KEY\-\-\-\-\-")
+    SEARCHCOUNT=$("${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh" "${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem" | grep -E -c "\-\-\-\-\-BEGIN (RSA )?PRIVATE KEY\-\-\-\-\-")
     assertEquals "${UNITTEST_WORKINGDIR}/bin/show_ssl_file.sh ${UNITTEST_WORKINGDIR}/customer_private_keys/multisan.unittest.example.com.${CUSTOMER_CERT_DATE_EXTENSION}.key.pem should display a private key, but seems not to. Count" "1" "${SEARCHCOUNT}"
 }
 
