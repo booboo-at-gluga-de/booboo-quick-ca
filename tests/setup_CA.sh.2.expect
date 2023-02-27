@@ -12,15 +12,21 @@ send -- "y\r"
 
 # Creating Key for Root CA...
 # Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
-expect "root_ca.key.pem:"
+# or
+# Enter PEM pass phrase:
+expect -re {(root_ca.key.pem:|Enter PEM pass phrase:)}
 send -- "test123\r"
 # Verifying - Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
-expect "root_ca.key.pem:"
+# or
+# Verifying - Enter PEM pass phrase:
+expect -re {(root_ca.key.pem:|Enter PEM pass phrase:)}
 send -- "test123\r"
 
 # Creating Root CA certificate...
 # Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
-expect "root_ca.key.pem:"
+# or
+# Enter PEM pass phrase:
+expect -re {(root_ca.key.pem:|Enter PEM pass phrase:)}
 send -- "test123\r"
 
 # Country Name (2 letter code) [DE]:
@@ -57,20 +63,28 @@ send -- "\r"
 
 # Creating a Certificate Revocation List (CRL) for the Root CA...
 # Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/root_ca.key.pem:
-expect "root_ca.key.pem:"
+# or
+# Enter PEM pass phrase:
+expect -re {(root_ca.key.pem:|Enter PEM pass phrase:)}
 send -- "test123\r"
 
 # Creating Key for Issuing CA...
 # Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/issuing_ca.2021.key.pem:
-expect "ca_private_keys/issuing_ca.20"
+# or
+# Enter PEM pass phrase:
+expect -re {(ca_private_keys/issuing_ca.20|Enter PEM pass phrase:)}
 send -- "test123\r"
 # Verifying - Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/issuing_ca.2021.key.pem:
-expect "ca_private_keys/issuing_ca.20"
+# or
+# Verifying - Enter PEM pass phrase:
+expect -re {(ca_private_keys/issuing_ca.20|Enter PEM pass phrase:)}
 send -- "test123\r"
 
 # Creating Certificate Signing Request (CSR) for Issuing CA...
 # Enter pass phrase for /tmp/tmp.CeLzbzBi5u/ca_private_keys/issuing_ca.2021.key.pem:
-expect "ca_private_keys/issuing_ca.20"
+# or
+# Enter PEM pass phrase:
+expect -re {(ca_private_keys/issuing_ca.20|Enter PEM pass phrase:)}
 send -- "test123\r"
 
 # Country Name (2 letter code) [DE]:
@@ -120,7 +134,9 @@ send -- "\r"
 
 # Creating a Certificate Revocation List (CRL) for the Issuing CA...
 # Enter pass phrase for /tmp/tmp.eTJgbR4OKV/ca_private_keys/issuing_ca.key.pem:
-expect "issuing_ca.key.pem:"
+# or
+# Enter PEM pass phrase:
+expect -re {(issuing_ca.key.pem:|Enter PEM pass phrase:)}
 send -- "test123\r"
 
 expect eof

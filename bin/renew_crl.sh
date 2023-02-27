@@ -35,8 +35,11 @@ function help { # .-------------------------------------------------------
     echo
     echo "call without parameter:"
     echo "         Renew the CRL(s)"
+    echo "         (Root CA CRL plus - if you have - Issuing CA CRL)"
     echo "call with parameter:"
     echo "    -c   Check validity period only (do not renew)"
+    echo "    -i   Renew or check Issuing CA CRL only"
+    echo "    -r   Renew or check Root CA CRL only"
     echo "    -h   Display this help screen and exit"
     echo
     echo "if you want to automate your CRL renewal, you can provide the passwords"
@@ -52,6 +55,7 @@ function help { # .-------------------------------------------------------
 BOOBOO_QUICK_CA_BASE=${BOOBOO_QUICK_CA_BASE:-$(readlink -f "$(dirname "$0")/..")}
 QUICK_CA_CFG_FILE=$BOOBOO_QUICK_CA_BASE/ca_config/booboo-quick-ca.cfg
 CHECK_ONLY=0
+TARGET="both"
 
 # shellcheck source=common_functions
 source "$BOOBOO_QUICK_CA_BASE/bin/common_functions"
@@ -65,10 +69,16 @@ fi
 hook_script pre
 
 # .-- command line options -----------------------------------------------
-while getopts ":ch" opt; do
+while getopts ":crih" opt; do
     case $opt in
     c)
         CHECK_ONLY=1
+        ;;
+    r)
+        TARGET="root"
+        ;;
+    i)
+        TARGET="issuing"
         ;;
     h)
         help
@@ -85,11 +95,19 @@ done
 #.
 
 if [[ $CHECK_ONLY -eq 1 ]]; then
-    check_crl_validity "root_ca"
-    check_crl_validity "issuing_ca"
+    if [[ $TARGET = "root" ]] || [[ $TARGET = "both" ]]; then
+        check_crl_validity "root_ca"
+    fi
+    if [[ $TARGET = "issuing" ]] || [[ $TARGET = "both" ]]; then
+        check_crl_validity "issuing_ca"
+    fi
 else
-    create_crl_root_ca
-    create_crl_issuing_ca
+    if [[ $TARGET = "root" ]] || [[ $TARGET = "both" ]]; then
+        create_crl_root_ca
+    fi
+    if [[ $TARGET = "issuing" ]] || [[ $TARGET = "both" ]]; then
+        create_crl_issuing_ca
+    fi
 fi
 
 hook_script post
